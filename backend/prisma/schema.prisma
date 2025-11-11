@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model User (tetap sama untuk login)
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+}
+
+// --- INI MODEL BARU ANDA ---
+// Satu tabel untuk semua data
+model Customer {
+  id         Int @id @default(autoincrement())
+  originalId Int @unique // ID dari CSV (row number)
+
+  // Kolom dari nasabah_prioritas.csv (opsional)
+  name        String?
+  phoneNumber String?
+  score       Float? // Skor probabilitas (opsional)
+
+  // Kolom dari bank-additional-full.csv (data mentah)
+  age          Int
+  job          String
+  marital      String
+  education    String
+  default      String
+  housing      String
+  loan         String
+  contact      String
+  month        String
+  dayOfWeek    String @map("day_of_week")
+  duration     Int
+  campaign     Int
+  pdays        Int
+  previous     Int
+  poutcome     String
+  empVarRate   Float  @map("emp.var.rate")
+  consPriceIdx Float  @map("cons.price.idx")
+  consConfIdx  Float  @map("cons.conf.idx")
+  euribor3m    Float
+  nrEmployed   Float  @map("nr.employed")
+}
