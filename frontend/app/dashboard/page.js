@@ -5,28 +5,55 @@ import { useAuth } from "../../contexts/AuthContext";
 import CustomerTable from "../../components/CustomerTable";
 import SearchFilter from "../../components/SearchFilter";
 
+// Helper functions for session storage
+const saveStateToSession = (pagination, filters) => {
+  const state = {
+    pagination: {
+      currentPage: pagination.currentPage,
+    },
+    filters: filters,
+  };
+  sessionStorage.setItem("dashboardState", JSON.stringify(state));
+};
+
+const getStateFromSession = () => {
+  try {
+    const saved = sessionStorage.getItem("dashboardState");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error("Error reading session storage:", error);
+  }
+  return null;
+};
+
 export default function DashboardPage() {
   const { api } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Try to restore state from session storage, otherwise use defaults
+  const savedState = getStateFromSession();
   const [pagination, setPagination] = useState({
-    currentPage: 1,
+    currentPage: savedState?.pagination?.currentPage || 1,
     totalPages: 0,
     totalCustomers: 0,
     hasNext: false,
     hasPrev: false,
   });
+
   const [filters, setFilters] = useState({
-    search: "",
-    minScore: "",
-    maxScore: "",
-    job: "",
-    marital: "",
-    education: "",
-    housing: "",
-    sortBy: "score",
-    sortOrder: "desc",
+    search: savedState?.filters?.search || "",
+    minScore: savedState?.filters?.minScore || "",
+    maxScore: savedState?.filters?.maxScore || "",
+    job: savedState?.filters?.job || "",
+    marital: savedState?.filters?.marital || "",
+    education: savedState?.filters?.education || "",
+    housing: savedState?.filters?.housing || "",
+    sortBy: savedState?.filters?.sortBy || "score",
+    sortOrder: savedState?.filters?.sortOrder || "desc",
   });
   const [filterOptions, setFilterOptions] = useState({
     jobOptions: [],
@@ -40,6 +67,11 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchFilterOptions();
   }, []);
+
+  // Save state to session storage when filters or pagination change
+  useEffect(() => {
+    saveStateToSession(pagination, filters);
+  }, [filters, pagination.currentPage]);
 
   // Fetch customers when filters or pagination change
   useEffect(() => {
@@ -104,8 +136,8 @@ export default function DashboardPage() {
           Dashboard Nasabah
         </h1>
         <p className="text-gray-600">
-          Daftar nasabah yang diurutkan berdasarkan skor probabilitas berlangganan
-          tertinggi
+          Daftar nasabah yang diurutkan berdasarkan skor probabilitas
+          berlangganan tertinggi
         </p>
       </div>
 
@@ -122,7 +154,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-white"
@@ -156,7 +188,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-white"
@@ -192,7 +224,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-white"
@@ -237,7 +269,7 @@ export default function DashboardPage() {
         {error && (
           <div className="m-4 rounded-md bg-red-50 p-4">
             <div className="flex">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <svg
                   className="h-5 w-5 text-red-400"
                   viewBox="0 0 20 20"

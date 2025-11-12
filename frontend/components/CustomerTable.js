@@ -180,9 +180,10 @@ export default function CustomerTable({
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">{customers.length}</span> of{" "}
-              <span className="font-medium">{pagination.totalCustomers}</span>{" "}
-              results
+              Menampilkan <span className="font-medium">{customers.length}</span> dari{" "}
+              <span className="font-medium">{pagination.totalCustomers}</span> nasabah -
+              Halaman <span className="font-medium">{pagination.currentPage}</span> dari{" "}
+              <span className="font-medium">{pagination.totalPages}</span>
             </p>
           </div>
           <div>
@@ -198,24 +199,71 @@ export default function CustomerTable({
                 Previous
               </button>
 
-              {/* Page numbers */}
-              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                const pageNum = i + 1;
-                const isActive = pageNum === pagination.currentPage;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange(pageNum)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      isActive
-                        ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+              {/* Page numbers with ellipsis */}
+              {(() => {
+                const { currentPage, totalPages } = pagination;
+                const pages = [];
+                const showMax = 5; // Maximum visible page numbers
+
+                // Always show page 1
+                if (currentPage <= Math.ceil(showMax / 2)) {
+                  // Near the beginning
+                  for (let i = 1; i <= Math.min(showMax, totalPages); i++) {
+                    pages.push(i);
+                  }
+                  if (totalPages > showMax) {
+                    pages.push('...');
+                    pages.push(totalPages);
+                  }
+                } else if (currentPage >= totalPages - Math.floor(showMax / 2)) {
+                  // Near the end
+                  pages.push(1);
+                  pages.push('...');
+                  const start = Math.max(1, totalPages - showMax + 1);
+                  for (let i = start; i <= totalPages; i++) {
+                    pages.push(i);
+                  }
+                } else {
+                  // In the middle
+                  pages.push(1);
+                  pages.push('...');
+                  const start = currentPage - Math.floor(showMax / 2);
+                  const end = currentPage + Math.floor(showMax / 2);
+                  for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                  }
+                  pages.push('...');
+                  pages.push(totalPages);
+                }
+
+                return pages.map((pageNum, index) => {
+                  if (pageNum === '...') {
+                    return (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isActive = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => onPageChange(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        isActive
+                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                });
+              })()}
 
               <button
                 onClick={() => onPageChange(pagination.currentPage + 1)}
