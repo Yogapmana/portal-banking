@@ -22,7 +22,14 @@ export default function LoginForm() {
     if (result.success) {
       router.push("/dashboard");
     } else {
-      setError(result.error);
+      // Handle new structured error format from backend
+      if (result.error?.message) {
+        setError(result.error.message);
+      } else if (typeof result.error === 'string') {
+        setError(result.error);
+      } else {
+        setError("Login gagal. Periksa email dan password Anda.");
+      }
     }
 
     setIsLoading(false);

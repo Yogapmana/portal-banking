@@ -6,6 +6,11 @@ const { PrismaClient } = require("@prisma/client");
 
 const authRoutes = require("./routes/auth");
 const customerRoutes = require("./routes/customers");
+const {
+  errorHandler,
+  notFoundHandler,
+  validateEnvironment,
+} = require("./middleware/errorHandler");
 
 const prisma = new PrismaClient();
 dotenv.config();
@@ -24,19 +29,18 @@ app.get("/api", (req, res) => {
   res.json({ message: "API berjalan!" });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
-});
+// Custom error handling middleware (must be last)
+app.use(errorHandler);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
+// 404 handler (must be before error handler)
+app.use(notFoundHandler);
 
 const startServer = async () => {
   try {
+    // Validate environment variables first
+    validateEnvironment();
+    console.log("Environment validation passed");
+
     await prisma.$connect();
     console.log("Database connected successfully");
 
@@ -45,6 +49,13 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error("Failed to start server:", error);
+    if (error.message.includes("Environment variable")) {
+      console.error("\n💡 Setup Instructions:");
+      console.error("1. Create .env file in backend directory");
+      console.error("2. Add these variables:");
+      console.error("   JWT_SECRET=your-very-secure-secret-key-here");
+      console.error("   DATABASE_URL=your-database-connection-string");
+    }
     process.exit(1);
   }
 };

@@ -148,7 +148,11 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
       const response = await api.post("/auth/login", { email, password });
-      const { user, token } = response.data;
+
+      // Handle new response format from backend
+      const responseData = response.data;
+      const user = responseData.data?.user || responseData.user;
+      const token = responseData.data?.token || responseData.token;
 
       // Store in localStorage
       localStorage.setItem("token", token);
@@ -161,9 +165,28 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || "Login gagal";
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
-      return { success: false, error: message };
+
+      // Handle new structured error format from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // If it's our new structured error format
+        if (errorData.success === false && errorData.error) {
+          return {
+            success: false,
+            error: errorData
+          };
+        }
+
+        // Fallback for old format or other errors
+        return {
+          success: false,
+          error: errorData.message || errorData.error || "Login gagal"
+        };
+      }
+
+      return { success: false, error: "Terjadi kesalahan jaringan" };
     }
   };
 
@@ -173,7 +196,11 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
       const response = await api.post("/auth/register", { email, password });
-      const { user, token } = response.data;
+
+      // Handle new response format from backend
+      const responseData = response.data;
+      const user = responseData.data?.user || responseData.user;
+      const token = responseData.data?.token || responseData.token;
 
       // Store in localStorage
       localStorage.setItem("token", token);
@@ -186,9 +213,28 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || "Registrasi gagal";
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
-      return { success: false, error: message };
+
+      // Handle new structured error format from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // If it's our new structured error format
+        if (errorData.success === false && errorData.error) {
+          return {
+            success: false,
+            error: errorData
+          };
+        }
+
+        // Fallback for old format or other errors
+        return {
+          success: false,
+          error: errorData.message || errorData.error || "Registrasi gagal"
+        };
+      }
+
+      return { success: false, error: "Terjadi kesalahan jaringan" };
     }
   };
 
