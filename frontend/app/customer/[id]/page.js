@@ -5,16 +5,37 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../contexts/AuthContext";
 
 export default function CustomerDetailPage() {
-  const { api } = useAuth();
+  const { api, isAuthenticated, isLoading: authLoading } = useAuth();
   const { id } = useParams();
   const router = useRouter();
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Redirect to home if not authenticated
   useEffect(() => {
-    fetchCustomer();
-  }, [id]);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Show loading or redirect if not authenticated
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCustomer();
+    }
+  }, [id, isAuthenticated]);
 
   const fetchCustomer = async () => {
     try {

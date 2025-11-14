@@ -52,23 +52,14 @@ router.get("/", async (req, res) => {
     // Build order clause
     let orderBy;
     if (sortBy === "score" && sortOrder === "desc") {
-      orderBy = [
-        { score: "desc" },
-        { originalId: "asc" }
-      ];
+      orderBy = [{ score: "desc" }, { originalId: "asc" }];
     } else if (sortBy === "score" && sortOrder === "asc") {
-      orderBy = [
-        { score: "asc" },
-        { originalId: "asc" }
-      ];
+      orderBy = [{ score: "asc" }, { originalId: "asc" }];
     } else if (sortBy === "age") {
       orderBy = { age: sortOrder };
     } else {
       // Default: sort by score desc, then by originalId
-      orderBy = [
-        { score: "desc" },
-        { originalId: "asc" }
-      ];
+      orderBy = [{ score: "desc" }, { originalId: "asc" }];
     }
 
     // Get customers and total count
@@ -147,28 +138,29 @@ router.get("/:id", async (req, res) => {
 // Get filter options (distinct values for dropdowns)
 router.get("/filters/options", async (req, res) => {
   try {
-    const [jobs, maritalStatuses, educationLevels, housingTypes] = await Promise.all([
-      prisma.customer.findMany({
-        select: { job: true },
-        distinct: ["job"],
-        orderBy: { job: "asc" },
-      }),
-      prisma.customer.findMany({
-        select: { marital: true },
-        distinct: ["marital"],
-        orderBy: { marital: "asc" },
-      }),
-      prisma.customer.findMany({
-        select: { education: true },
-        distinct: ["education"],
-        orderBy: { education: "asc" },
-      }),
-      prisma.customer.findMany({
-        select: { housing: true },
-        distinct: ["housing"],
-        orderBy: { housing: "asc" },
-      }),
-    ]);
+    const [jobs, maritalStatuses, educationLevels, housingTypes] =
+      await Promise.all([
+        prisma.customer.findMany({
+          select: { job: true },
+          distinct: ["job"],
+          orderBy: { job: "asc" },
+        }),
+        prisma.customer.findMany({
+          select: { marital: true },
+          distinct: ["marital"],
+          orderBy: { marital: "asc" },
+        }),
+        prisma.customer.findMany({
+          select: { education: true },
+          distinct: ["education"],
+          orderBy: { education: "asc" },
+        }),
+        prisma.customer.findMany({
+          select: { housing: true },
+          distinct: ["housing"],
+          orderBy: { housing: "asc" },
+        }),
+      ]);
 
     const scoreStats = await prisma.customer.aggregate({
       where: { score: { not: null } },
@@ -178,10 +170,10 @@ router.get("/filters/options", async (req, res) => {
     });
 
     res.json({
-      jobOptions: jobs.map(j => j.job).filter(Boolean),
-      maritalOptions: maritalStatuses.map(m => m.marital).filter(Boolean),
-      educationOptions: educationLevels.map(e => e.education).filter(Boolean),
-      housingOptions: housingTypes.map(h => h.housing).filter(Boolean),
+      jobOptions: jobs.map((j) => j.job).filter(Boolean),
+      maritalOptions: maritalStatuses.map((m) => m.marital).filter(Boolean),
+      educationOptions: educationLevels.map((e) => e.education).filter(Boolean),
+      housingOptions: housingTypes.map((h) => h.housing).filter(Boolean),
       scoreRange: {
         min: scoreStats._min.score,
         max: scoreStats._max.score,

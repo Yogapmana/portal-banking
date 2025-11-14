@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomerTable from "../../components/CustomerTable";
 import SearchFilter from "../../components/SearchFilter";
@@ -29,7 +30,27 @@ const getStateFromSession = () => {
 };
 
 export default function DashboardPage() {
-  const { api } = useAuth();
+  const { api, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Show loading or redirect if not authenticated
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

@@ -29,7 +29,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/auth/login";
+      sessionStorage.clear(); // Clear session storage
+      window.location.href = "/";
     }
     return Promise.reject(error);
   }
@@ -195,7 +196,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.clear(); // Clear dashboard state
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
+
+    // Redirect to landing page
+    window.location.href = "/";
   };
 
   const value = {

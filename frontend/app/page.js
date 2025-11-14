@@ -1,166 +1,272 @@
 import Link from "next/link";
-import { Users, TrendingUp, Shield, BarChart3 } from "lucide-react";
+import { Users, TrendingUp, Shield, BarChart3, LogIn } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg mr-3"></div>
-              <h1 className="text-xl font-bold text-gray-900">Portal Banking</h1>
+      <header className="border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-600 rounded"></div>
+              <span className="text-xl font-semibold text-gray-900">
+                Banking Portal
+              </span>
             </div>
-            <nav className="flex space-x-4">
-              <Link
-                href="/auth/login"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Masuk
-              </Link>
-              <Link
-                href="/auth/register"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Daftar
-              </Link>
-            </nav>
+            <Link
+              href="/auth/login"
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign in</span>
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-            Portal Banking untuk
-            <span className="text-blue-600"> Tim Sales</span>
+          {/* Icon */}
+          <div className="flex justify-center mb-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Users className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Customer Management
+            <br />
+            for Sales Teams
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Kelola nasabah, lacak target penjualan, dan tingkatkan produktivitas tim sales Anda dalam satu platform terintegrasi.
+
+          {/* Description */}
+          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+            Complete platform for managing customer relationships, tracking
+            sales performance, and growing your business.
           </p>
-          <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-            <div className="rounded-md shadow">
-              <Link
-                href="/auth/register"
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10 transition-colors"
-              >
-                Mulai Sekarang
-              </Link>
-            </div>
-            <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-              <Link
-                href="/auth/login"
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors"
-              >
-                Masuk
-              </Link>
-            </div>
+
+          {/* Button */}
+          <div className="flex justify-center">
+            <Link
+              href="/auth/login"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <LogIn className="w-5 h-5" />
+              <span>Get started</span>
+            </Link>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="mt-20">
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900">Fitur Utama</h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Semua yang Anda butuhkan untuk mengelola tim sales banking
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Customer Management
+            </h3>
+            <p className="text-gray-600">
+              Organize and track all your customer data in one place
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="pt-6">
-              <div className="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg">
-                <div className="flex justify-center">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Users className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-                <h3 className="mt-6 text-lg font-medium text-gray-900 text-center">
-                  Manajemen Nasabah
-                </h3>
-                <p className="mt-2 text-base text-gray-500 text-center">
-                  Kelola data nasabah secara lengkap dan terstruktur
-                </p>
-              </div>
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Sales Analytics
+            </h3>
+            <p className="text-gray-600">
+              Track performance and identify growth opportunities
+            </p>
+          </div>
 
-            <div className="pt-6">
-              <div className="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg">
-                <div className="flex justify-center">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-                <h3 className="mt-6 text-lg font-medium text-gray-900 text-center">
-                  Tracking Target
-                </h3>
-                <p className="mt-2 text-base text-gray-500 text-center">
-                  Pantau pencapaian target penjualan tim Anda
-                </p>
-              </div>
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-6 h-6 text-purple-600" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Secure & Reliable
+            </h3>
+            <p className="text-gray-600">
+              Enterprise-grade security to protect your data
+            </p>
+          </div>
+        </div>
 
-            <div className="pt-6">
-              <div className="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg">
-                <div className="flex justify-center">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <Shield className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-                <h3 className="mt-6 text-lg font-medium text-gray-900 text-center">
-                  Keamanan Data
+        {/* Additional Features */}
+        <div className="mt-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Everything you need to manage customers
+            </h2>
+            <p className="text-lg text-gray-600">
+              Powerful features designed for modern sales teams
+            </p>
+          </div>
+
+          <div className="bg-gray-50 rounded-2xl p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  Key Features
                 </h3>
-                <p className="mt-2 text-base text-gray-500 text-center">
-                  Perlindungan data nasabah dengan enkripsi
-                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">
+                      Customer database management
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">
+                      Sales performance tracking
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">
+                      Real-time analytics dashboard
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">Secure data storage</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">
+                      Team collaboration tools
+                    </span>
+                  </li>
+                </ul>
               </div>
-            </div>
 
-            <div className="pt-6">
-              <div className="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg">
-                <div className="flex justify-center">
-                  <div className="p-3 bg-yellow-100 rounded-lg">
-                    <BarChart3 className="h-6 w-6 text-yellow-600" />
-                  </div>
-                </div>
-                <h3 className="mt-6 text-lg font-medium text-gray-900 text-center">
-                  Laporan & Analytics
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  Benefits
                 </h3>
-                <p className="mt-2 text-base text-gray-500 text-center">
-                  Analisis performa dan laporan real-time
-                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start space-x-3">
+                    <BarChart3 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">
+                      Increase sales productivity by 40%
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <BarChart3 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">
+                      Improve customer retention rates
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <BarChart3 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">
+                      Streamline workflow processes
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <BarChart3 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">
+                      Better data-driven decisions
+                    </span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-20 bg-white rounded-lg shadow-lg p-8">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">500+</div>
-              <div className="mt-2 text-sm text-gray-600">Sales Banking</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">10K+</div>
-              <div className="mt-2 text-sm text-gray-600">Nasabah Terlayani</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">99.9%</div>
-              <div className="mt-2 text-sm text-gray-600">Uptime</div>
-            </div>
-          </div>
+        {/* CTA Section */}
+        <div className="text-center mt-24">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Ready to get started?
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Join thousands of sales teams using our platform
+          </p>
+          <Link
+            href="/auth/login"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+          >
+            <LogIn className="w-5 h-5" />
+            <span>Get started now</span>
+          </Link>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-20">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-base text-gray-500">
-            © 2024 Portal Banking. Semua hak dilindungi.
-          </p>
+      <footer className="border-t border-gray-200 mt-20">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="text-center text-gray-600">
+            <p>© 2024 Banking Portal. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
