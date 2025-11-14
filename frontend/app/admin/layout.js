@@ -4,18 +4,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function DashboardLayout({ children }) {
+export default function AdminLayout({ children }) {
   const { user, isAuthenticated, isLoading, logout, role } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login");
+    if (!isLoading && (!isAuthenticated || role !== "ADMIN")) {
+      router.push("/dashboard");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, role, router]);
 
-  if (isLoading) {
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (role !== "ADMIN") {
     return null;
   }
 
@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }) {
               <span className="text-sm text-gray-700">
                 Selamat datang, {user?.email}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                 {role}
               </span>
               <button
@@ -104,23 +104,21 @@ export default function DashboardLayout({ children }) {
             </div>
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Menu Admin</h2>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 <a
                   href="/dashboard"
-                  className="bg-blue-100 text-blue-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                 >
                   Dashboard
                 </a>
-                {role === "ADMIN" && (
-                  <a
-                    href="/admin"
-                    className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                  >
-                    Manajemen Akun
-                  </a>
-                )}
+                <a
+                  href="/admin"
+                  className="bg-blue-100 text-blue-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                >
+                  Manajemen Akun
+                </a>
               </nav>
             </div>
           </div>
@@ -136,18 +134,16 @@ export default function DashboardLayout({ children }) {
                 <nav className="mt-5 flex-1 px-2 space-y-1">
                   <a
                     href="/dashboard"
-                    className="bg-blue-100 text-blue-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                    className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                   >
                     Dashboard
                   </a>
-                  {role === "ADMIN" && (
-                    <a
-                      href="/admin"
-                      className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                    >
-                      Manajemen Akun
-                    </a>
-                  )}
+                  <a
+                    href="/admin"
+                    className="bg-blue-100 text-blue-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  >
+                    Manajemen Akun
+                  </a>
                 </nav>
               </div>
             </div>

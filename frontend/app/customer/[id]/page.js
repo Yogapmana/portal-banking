@@ -12,31 +12,6 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, authLoading, router]);
-
-  // Show loading or redirect if not authenticated
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchCustomer();
-    }
-  }, [id, isAuthenticated]);
-
   const fetchCustomer = async () => {
     try {
       setLoading(true);
@@ -50,6 +25,32 @@ export default function CustomerDetailPage() {
       setLoading(false);
     }
   };
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Fetch customer data
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      fetchCustomer();
+    }
+  }, [id, isAuthenticated]);
+
+  // Show loading or redirect if not authenticated
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const formatScore = (score) => {
     if (score === null || score === undefined) return "Tidak tersedia";

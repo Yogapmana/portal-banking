@@ -182,14 +182,36 @@ async function main() {
     await prisma.customer.deleteMany({}); // Hanya hapus customer (skor sudah bagian dari customer)
     await prisma.user.deleteMany({}); // Hapus user juga
 
-    // Buat user dummy (opsional, untuk login)
-    await prisma.user.create({
+    // Buat user admin default (gunakan environment variables)
+    const bcrypt = require("bcryptjs");
+
+    // Get credentials from environment or use secure defaults
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@bank.com";
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD || "Admin123!";
+    const salesEmail = process.env.SALES_EMAIL || "sales@bank.com";
+    const salesPasswordPlain = process.env.SALES_PASSWORD || "Sales123!";
+
+    const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
+    const salesPassword = await bcrypt.hash(salesPasswordPlain, 12);
+
+    const adminUser = await prisma.user.create({
       data: {
-        email: "sales@bank.com",
-        password: "password123", // Anda harusnya hash ini, tapi ini untuk testing
+        email: adminEmail,
+        password: adminPassword,
+        role: "ADMIN",
       },
     });
-    console.log("User dummy created.");
+    console.log("Admin user created successfully");
+
+    // Buat user sales dummy (opsional, untuk login)
+    await prisma.user.create({
+      data: {
+        email: salesEmail,
+        password: salesPassword,
+        role: "SALES",
+      },
+    });
+    console.log("Sales user created successfully");
 
     // 1. Baca data mentah
     console.log("Membaca data bank-additional-full.csv...");

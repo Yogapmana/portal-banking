@@ -1,12 +1,16 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
+const { authMiddleware, requireAdminOrManager } = require("../middleware/auth");
+const { asyncHandler } = require("../middleware/errorHandler");
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // Get all customers with pagination, search, and filter
-router.get("/", async (req, res) => {
-  try {
+router.get(
+  "/",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     const {
       page = 1,
       limit = 20,
@@ -28,26 +32,73 @@ router.get("/", async (req, res) => {
     const where = {};
 
     // Search by name, phone number, or job
+    const searchConditions = [];
     if (search) {
-      where.OR = [
+      searchConditions.push(
         { name: { contains: search, mode: "insensitive" } },
         { phoneNumber: { contains: search, mode: "insensitive" } },
-        { job: { contains: search, mode: "insensitive" } },
+        { job: { contains: search, mode: "insensitive" } }
+      );
+    }
+
+    // Role-based filtering
+    if (req.user.role === "SALES") {
+      // Sales bisa lihat semua customer (untuk sementara, sampai ada assignment system)
+      // TODO: Implement proper assignment system
+      const salesConditions = [
+        { salesId: null }, // Customer yang belum diassign
+        { salesId: req.user.userId } // Customer yang diassign ke sales ini
       ];
+
+      if (searchConditions.length > 0) {
+        // Combine search and sales conditions
+        where.AND = [
+          {
+            OR: salesConditions
+          },
+          {
+            OR: searchConditions
+          }
+        ];
+      } else {
+        // Only sales conditions (no search)
+        where.OR = salesConditions;
+      }
+    } else {
+      // Admin dan Sales Manager bisa lihat semua customer
+      if (searchConditions.length > 0) {
+        where.OR = searchConditions;
+      }
     }
 
     // Score range filter
     if (minScore !== undefined || maxScore !== undefined) {
-      where.score = {};
-      if (minScore !== undefined) where.score.gte = parseFloat(minScore);
-      if (maxScore !== undefined) where.score.lte = parseFloat(maxScore);
+      const scoreCondition = {};
+      if (minScore !== undefined) scoreCondition.gte = parseFloat(minScore);
+      if (maxScore !== undefined) scoreCondition.lte = parseFloat(maxScore);
+
+      if (where.AND) {
+        where.AND.push({ score: scoreCondition });
+      } else {
+        where.score = scoreCondition;
+      }
     }
 
     // Exact match filters
-    if (job) where.job = job;
-    if (marital) where.marital = marital;
-    if (education) where.education = education;
-    if (housing) where.housing = housing;
+    const exactFilters = {};
+    if (job) exactFilters.job = job;
+    if (marital) exactFilters.marital = marital;
+    if (education) exactFilters.education = education;
+    if (housing) exactFilters.housing = housing;
+
+    // Add exact filters to where clause
+    if (Object.keys(exactFilters).length > 0) {
+      if (where.AND) {
+        where.AND.push(exactFilters);
+      } else {
+        Object.assign(where, exactFilters);
+      }
+    }
 
     // Build order clause
     let orderBy;
@@ -109,15 +160,14 @@ router.get("/", async (req, res) => {
         hasPrev,
       },
     });
-  } catch (error) {
-    console.error("Get customers error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 // Get customer by ID
-router.get("/:id", async (req, res) => {
-  try {
+router.get(
+  "/:id",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     const customer = await prisma.customer.findUnique({
@@ -128,17 +178,20 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Customer tidak ditemukan" });
     }
 
+    // Role-based access check
+    // Untuk sementara, sales bisa lihat semua customer
+    // TODO: Implement proper assignment system
+    // if (req.user.role === "SALES" && customer.salesId !== req.user.userId && customer.salesId !== null) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
+
     res.json(customer);
-  } catch (error) {
-    console.error("Get customer error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 // Get filter options (distinct values for dropdowns)
-router.get("/filters/options", async (req, res) => {
-  try {
-    const [jobs, maritalStatuses, educationLevels, housingTypes] =
+router.get("/filters/options", authMiddleware, asyncHandler(async (req, res) => {
+  const [jobs, maritalStatuses, educationLevels, housingTypes] =
       await Promise.all([
         prisma.customer.findMany({
           select: { job: true },
@@ -180,10 +233,7 @@ router.get("/filters/options", async (req, res) => {
         avg: scoreStats._avg.score,
       },
     });
-  } catch (error) {
-    console.error("Get filter options error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 module.exports = router;
