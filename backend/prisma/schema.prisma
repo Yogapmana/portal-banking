@@ -9,9 +9,23 @@ datasource db {
 
 // Model User (tetap sama untuk login)
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role     @default(SALES)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  assignedCustomers Customer[] @relation("CustomerAssignment")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN          // Bisa membuat akun dan full access
+  SALES_MANAGER  // Baca performa sales dan manage data customer
+  SALES          // Hanya akses customer yang diassign
 }
 
 // --- INI MODEL BARU ANDA ---
@@ -19,6 +33,10 @@ model User {
 model Customer {
   id         Int @id @default(autoincrement())
   originalId Int @unique // ID dari CSV (row number)
+
+  // Assignment ke sales
+  salesId    Int? @map("sales_id")
+  assignedTo User? @relation("CustomerAssignment", fields: [salesId], references: [id])
 
   // Kolom dari nasabah_prioritas.csv (opsional)
   name        String?

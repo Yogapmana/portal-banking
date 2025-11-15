@@ -43,13 +43,31 @@ export default function LoginForm() {
             Login Tim Sales
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Atau{" "}
-            <a
-              href="/auth/register"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              daftar akun baru
-            </a>
+            Masukkan email dan password Anda
+          </p>
+
+          {/* Development-only credentials display */}
+          {process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_SHOW_TEST_CREDENTIALS === 'true' && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-xs font-medium text-yellow-700 mb-2">
+                Development Test Credentials:
+              </p>
+              <div className="space-y-1 text-xs font-mono">
+                <div>
+                  <span className="text-yellow-600">Admin:</span> {process.env.NEXT_PUBLIC_TEST_ADMIN_EMAIL || 'admin@bank.com'}
+                </div>
+                <div>
+                  <span className="text-yellow-600">Sales:</span> {process.env.NEXT_PUBLIC_TEST_SALES_EMAIL || 'sales@bank.com'}
+                </div>
+              </div>
+              <p className="text-xs text-yellow-600 mt-2">
+                Password: Check development documentation
+              </p>
+            </div>
+          )}
+
+          <p className="mt-2 text-center text-xs text-gray-500">
+            Hubungi admin untuk membuat akun baru
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

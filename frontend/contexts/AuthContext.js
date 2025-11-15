@@ -22,11 +22,14 @@ api.interceptors.request.use(
   }
 );
 
-// Handle token expiry
+// Handle token expiry only for expired token, not for wrong password
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect to home for 401 if it's NOT a login/auth error
+    if (error.response?.status === 401 &&
+        !error.config?.url?.includes('/auth/login') &&
+        !error.config?.url?.includes('/auth/register')) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       sessionStorage.clear(); // Clear session storage
@@ -40,6 +43,7 @@ api.interceptors.response.use(
 const initialState = {
   user: null,
   token: null,
+  role: null,
   isLoading: true,
   isAuthenticated: false,
 };
@@ -68,6 +72,7 @@ const authReducer = (state, action) => {
         ...state,
         isAuthenticated: true,
         user: action.payload.user,
+        role: action.payload.user?.role || null,
         token: action.payload.token,
         isLoading: false,
       };
@@ -77,6 +82,7 @@ const authReducer = (state, action) => {
         ...state,
         isAuthenticated: false,
         user: null,
+        role: null,
         token: null,
         isLoading: false,
       };
@@ -86,6 +92,7 @@ const authReducer = (state, action) => {
         ...state,
         isAuthenticated: false,
         user: null,
+        role: null,
         token: null,
         isLoading: false,
       };
@@ -95,6 +102,7 @@ const authReducer = (state, action) => {
         ...state,
         isAuthenticated: true,
         user: action.payload,
+        role: action.payload?.role || null,
         isLoading: false,
       };
 
@@ -238,6 +246,50 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Admin register function
+  const registerAdmin = async (email, password, role) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+
+      const response = await api.post("/auth/register/admin", { email, password, role });
+
+      // Handle new response format from backend
+      const responseData = response.data;
+      const user = responseData.data?.user || responseData.user;
+      const token = responseData.data?.token || responseData.token;
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token },
+      });
+
+      return { success: true };
+    } catch (error) {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
+
+      // Handle new structured error format from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // If it's our new structured error format
+        if (errorData.success === false && errorData.error) {
+          return {
+            success: false,
+            error: errorData
+          };
+        }
+
+        // Fallback for old format or other errors
+        return {
+          success: false,
+          error: errorData.message || errorData.error || "Registrasi gagal"
+        };
+      }
+
+      return { success: false, error: "Terjadi kesalahan jaringan" };
+    }
+  };
+
   // Logout function
   const logout = () => {
     localStorage.removeItem("token");
@@ -253,6 +305,7 @@ export const AuthProvider = ({ children }) => {
     ...state,
     login,
     register,
+    registerAdmin,
     logout,
     api,
   };

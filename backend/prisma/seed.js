@@ -182,14 +182,36 @@ async function main() {
     await prisma.customer.deleteMany({}); // Hanya hapus customer (skor sudah bagian dari customer)
     await prisma.user.deleteMany({}); // Hapus user juga
 
-    // Buat user dummy (opsional, untuk login)
-    await prisma.user.create({
+    // Buat user admin default (gunakan environment variables)
+    const bcrypt = require("bcryptjs");
+
+    // Get credentials from environment or use secure defaults
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD;
+    const salesEmail = process.env.SALES_EMAIL;
+    const salesPasswordPlain = process.env.SALES_PASSWORD;
+
+    const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
+    const salesPassword = await bcrypt.hash(salesPasswordPlain, 12);
+
+    const adminUser = await prisma.user.create({
       data: {
-        email: "sales@bank.com",
-        password: "password123", // Anda harusnya hash ini, tapi ini untuk testing
+        email: adminEmail,
+        password: adminPassword,
+        role: "ADMIN",
       },
     });
-    console.log("User dummy created.");
+    console.log("Admin user created successfully");
+
+    // Buat user sales dummy (opsional, untuk login)
+    await prisma.user.create({
+      data: {
+        email: salesEmail,
+        password: salesPassword,
+        role: "SALES",
+      },
+    });
+    console.log("Sales user created successfully");
 
     // 1. Baca data mentah
     console.log("Membaca data bank-additional-full.csv...");
@@ -213,16 +235,16 @@ async function main() {
     // 4. SETELAH itu, jalankan update skor
     await seedScores(scoreRows);
 
-    console.log("✅ Seeding selesai dengan sukses!");
+    console.log("Seeding selesai dengan sukses!");
   } catch (error) {
-    console.error("❌ Error saat seeding:", error.message);
+    console.error("Error saat seeding:", error.message);
 
     if (
       error.code === "ECONNREFUSED" ||
       error.message.includes("Authentication failed")
     ) {
       console.error(
-        "\n💡 Tips: Pastikan database server berjalan dan kredensial database benar."
+        "\nTips: Pastikan database server berjalan dan kredensial database benar."
       );
       console.error(
         "   Untuk development lokal, Anda bisa menggunakan SQLite dengan mengubah .env:"

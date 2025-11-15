@@ -4,7 +4,7 @@ const Joi = require('joi');
 const schemas = {
   register: Joi.object({
     email: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: true } })
+      .email()
       .required()
       .messages({
         'string.email': 'Email tidak valid',
@@ -18,6 +18,12 @@ const schemas = {
         'string.min': 'Password minimal 8 karakter',
         'string.pattern.base': 'Password harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&)',
         'any.required': 'Password harus diisi'
+      }),
+    role: Joi.string()
+      .valid('ADMIN', 'SALES_MANAGER', 'SALES')
+      .default('SALES')
+      .messages({
+        'any.only': 'Role tidak valid. Pilih: ADMIN, SALES_MANAGER, SALES'
       })
   }),
 
