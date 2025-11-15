@@ -186,10 +186,10 @@ async function main() {
     const bcrypt = require("bcryptjs");
 
     // Get credentials from environment or use secure defaults
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@bank.com";
-    const adminPasswordPlain = process.env.ADMIN_PASSWORD || "Admin123!";
-    const salesEmail = process.env.SALES_EMAIL || "sales@bank.com";
-    const salesPasswordPlain = process.env.SALES_PASSWORD || "Sales123!";
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD;
+    const salesEmail = process.env.SALES_EMAIL;
+    const salesPasswordPlain = process.env.SALES_PASSWORD;
 
     const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
     const salesPassword = await bcrypt.hash(salesPasswordPlain, 12);
@@ -235,16 +235,16 @@ async function main() {
     // 4. SETELAH itu, jalankan update skor
     await seedScores(scoreRows);
 
-    console.log("✅ Seeding selesai dengan sukses!");
+    console.log("Seeding selesai dengan sukses!");
   } catch (error) {
-    console.error("❌ Error saat seeding:", error.message);
+    console.error("Error saat seeding:", error.message);
 
     if (
       error.code === "ECONNREFUSED" ||
       error.message.includes("Authentication failed")
     ) {
       console.error(
-        "\n💡 Tips: Pastikan database server berjalan dan kredensial database benar."
+        "\nTips: Pastikan database server berjalan dan kredensial database benar."
       );
       console.error(
         "   Untuk development lokal, Anda bisa menggunakan SQLite dengan mengubah .env:"

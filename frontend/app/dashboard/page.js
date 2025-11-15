@@ -55,6 +55,50 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Calculate statistics from filtered customers
+  const calculateStats = (customerData) => {
+    if (!customerData || customerData.length === 0) {
+      return {
+        totalCustomers: 0,
+        totalWithScores: 0,
+        avgScore: 0,
+        maxScore: 0,
+        minScore: 0,
+        scoreCount: 0,
+      };
+    }
+
+    const customersWithScores = customerData.filter(c => c.score !== null && c.score !== undefined);
+
+    if (customersWithScores.length === 0) {
+      return {
+        totalCustomers: customerData.length,
+        totalWithScores: 0,
+        avgScore: 0,
+        maxScore: 0,
+        minScore: 0,
+        scoreCount: 0,
+      };
+    }
+
+    const scores = customersWithScores.map(c => c.score);
+    const total = scores.reduce((sum, score) => sum + score, 0);
+    const avg = total / scores.length;
+    const max = Math.max(...scores);
+    const min = Math.min(...scores);
+
+    return {
+      totalCustomers: customerData.length,
+      totalWithScores: customersWithScores.length,
+      avgScore: avg,
+      maxScore: max,
+      minScore: min,
+      scoreCount: scores.length,
+    };
+  };
+
+  const currentStats = calculateStats(customers);
+
   // Try to restore state from session storage, otherwise use defaults
   const savedState = getStateFromSession();
   const [pagination, setPagination] = useState({
@@ -171,7 +215,7 @@ export default function DashboardPage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -195,10 +239,10 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Nasabah
+                    Total Nasabah (Tersaring)
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {pagination.totalCustomers.toLocaleString()}
+                    {currentStats.totalCustomers.toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -229,11 +273,11 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Rata-rata Skor
+                    Rata-rata Skor (Tersaring)
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {filterOptions.scoreRange.avg
-                      ? (filterOptions.scoreRange.avg * 100).toFixed(1) + "%"
+                    {currentStats.avgScore > 0
+                      ? (currentStats.avgScore * 100).toFixed(1) + "%"
                       : "N/A"}
                   </dd>
                 </dl>
@@ -265,12 +309,52 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Skor Tertinggi
+                    Skor Tertinggi (Tersaring)
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {filterOptions.scoreRange.max
-                      ? (filterOptions.scoreRange.max * 100).toFixed(1) + "%"
+                    {currentStats.maxScore > 0
+                      ? (currentStats.maxScore * 100).toFixed(1) + "%"
                       : "N/A"}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="shrink-0">
+                <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Dengan Skor
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {currentStats.totalWithScores.toLocaleString()} / {currentStats.totalCustomers.toLocaleString()}
+                  </dd>
+                  <dd className="text-xs text-gray-500">
+                    {currentStats.totalCustomers > 0
+                      ? ((currentStats.totalWithScores / currentStats.totalCustomers) * 100).toFixed(1) + "%"
+                      : "0%"
+                    }
                   </dd>
                 </dl>
               </div>
