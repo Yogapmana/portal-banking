@@ -114,7 +114,7 @@ router.get(
     }
 
     // Get customers and total count
-    const [customers, total] = await Promise.all([
+    const [customers, total, statsData] = await Promise.all([
       prisma.customer.findMany({
         where,
         orderBy,
@@ -142,7 +142,33 @@ router.get(
         },
       }),
       prisma.customer.count({ where }),
+      prisma.customer.findMany({
+        where,
+        select: {
+          score: true,
+        },
+      }),
     ]);
+
+    // Calculate aggregated statistics for all filtered data
+    const customersWithScores = statsData.filter(c => c.score !== null && c.score !== undefined);
+    const scores = customersWithScores.map(c => c.score);
+
+    let aggregatedStats = {
+      totalCustomers: total,
+      totalWithScores: customersWithScores.length,
+      avgScore: 0,
+      maxScore: 0,
+      minScore: 0,
+      scoreCount: scores.length,
+    };
+
+    if (scores.length > 0) {
+      const totalScore = scores.reduce((sum, score) => sum + score, 0);
+      aggregatedStats.avgScore = totalScore / scores.length;
+      aggregatedStats.maxScore = Math.max(...scores);
+      aggregatedStats.minScore = Math.min(...scores);
+    }
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / take);
@@ -159,6 +185,7 @@ router.get(
         hasNext,
         hasPrev,
       },
+      stats: aggregatedStats,
     });
   })
 );

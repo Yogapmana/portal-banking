@@ -54,50 +54,7 @@ export default function DashboardPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Calculate statistics from filtered customers
-  const calculateStats = (customerData) => {
-    if (!customerData || customerData.length === 0) {
-      return {
-        totalCustomers: 0,
-        totalWithScores: 0,
-        avgScore: 0,
-        maxScore: 0,
-        minScore: 0,
-        scoreCount: 0,
-      };
-    }
-
-    const customersWithScores = customerData.filter(c => c.score !== null && c.score !== undefined);
-
-    if (customersWithScores.length === 0) {
-      return {
-        totalCustomers: customerData.length,
-        totalWithScores: 0,
-        avgScore: 0,
-        maxScore: 0,
-        minScore: 0,
-        scoreCount: 0,
-      };
-    }
-
-    const scores = customersWithScores.map(c => c.score);
-    const total = scores.reduce((sum, score) => sum + score, 0);
-    const avg = total / scores.length;
-    const max = Math.max(...scores);
-    const min = Math.min(...scores);
-
-    return {
-      totalCustomers: customerData.length,
-      totalWithScores: customersWithScores.length,
-      avgScore: avg,
-      maxScore: max,
-      minScore: min,
-      scoreCount: scores.length,
-    };
-  };
-
-  const currentStats = calculateStats(customers);
+  const [aggregatedStats, setAggregatedStats] = useState({});
 
   // Try to restore state from session storage, otherwise use defaults
   const savedState = getStateFromSession();
@@ -171,6 +128,7 @@ export default function DashboardPage() {
       const response = await api.get(`/customers?${params.toString()}`);
       setCustomers(response.data.customers);
       setPagination(response.data.pagination);
+      setAggregatedStats(response.data.stats || {});
       setError("");
     } catch (error) {
       console.error("Failed to fetch customers:", error);
@@ -239,10 +197,10 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Nasabah (Tersaring)
+                    Total Nasabah
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {currentStats.totalCustomers.toLocaleString()}
+                    {(aggregatedStats.totalCustomers || 0).toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -273,11 +231,11 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Rata-rata Skor (Tersaring)
+                    Rata-rata Skor
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {currentStats.avgScore > 0
-                      ? (currentStats.avgScore * 100).toFixed(1) + "%"
+                    {aggregatedStats.avgScore > 0
+                      ? (aggregatedStats.avgScore * 100).toFixed(1) + "%"
                       : "N/A"}
                   </dd>
                 </dl>
@@ -309,11 +267,11 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Skor Tertinggi (Tersaring)
+                    Skor Tertinggi
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {currentStats.maxScore > 0
-                      ? (currentStats.maxScore * 100).toFixed(1) + "%"
+                    {aggregatedStats.maxScore > 0
+                      ? (aggregatedStats.maxScore * 100).toFixed(1) + "%"
                       : "N/A"}
                   </dd>
                 </dl>
@@ -348,13 +306,17 @@ export default function DashboardPage() {
                     Dengan Skor
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {currentStats.totalWithScores.toLocaleString()} / {currentStats.totalCustomers.toLocaleString()}
+                    {(aggregatedStats.totalWithScores || 0).toLocaleString()} /{" "}
+                    {(aggregatedStats.totalCustomers || 0).toLocaleString()}
                   </dd>
                   <dd className="text-xs text-gray-500">
-                    {currentStats.totalCustomers > 0
-                      ? ((currentStats.totalWithScores / currentStats.totalCustomers) * 100).toFixed(1) + "%"
-                      : "0%"
-                    }
+                    {aggregatedStats.totalCustomers > 0
+                      ? (
+                          (aggregatedStats.totalWithScores /
+                            aggregatedStats.totalCustomers) *
+                          100
+                        ).toFixed(1) + "%"
+                      : "0%"}
                   </dd>
                 </dl>
               </div>

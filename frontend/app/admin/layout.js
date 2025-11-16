@@ -103,8 +103,10 @@ export default function AdminLayout({ children }) {
               </button>
             </div>
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-              <div className="flex-shrink-0 flex items-center px-4">
-                <h2 className="text-lg font-semibold text-gray-900">Menu Admin</h2>
+              <div className="shrink-0 flex items-center px-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Menu Admin
+                </h2>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 <a
@@ -127,7 +129,7 @@ export default function AdminLayout({ children }) {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex md:flex-shrink-0">
+        <div className="hidden md:flex md:shrink-0">
           <div className="flex flex-col w-64">
             <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
               <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
