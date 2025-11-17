@@ -1,156 +1,95 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { PrismaClient } = require("@prisma/client");
+const container = require("../container");
 const { validate } = require("../middleware/validation");
-const { asyncHandler, ConflictError, AuthenticationError, DatabaseError, ValidationError } = require("../middleware/errorHandler");
 const { authMiddleware, requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-// Admin only - create user with specific role
-router.post("/register/admin",
+// Get controller from container
+const authController = container.getAuthController();
+
+/**
+ * @route   POST /api/auth/register/admin
+ * @desc    Register new user (Admin only)
+ * @access  Private (Admin)
+ */
+router.post(
+  "/register/admin",
   authMiddleware,
   requireAdmin,
   validate("register"),
-  asyncHandler(async (req, res) => {
-    const { email, password, role = "SALES" } = req.body;
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      throw new ConflictError("User dengan email ini sudah terdaftar");
-    }
-
-    // Validate role
-    if (!["ADMIN", "SALES_MANAGER", "SALES"].includes(role.toUpperCase())) {
-      throw new ValidationError("Role tidak valid. Pilih: ADMIN, SALES_MANAGER, SALES");
-    }
-
-    // Hash password dengan bcrypt
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create user dengan try-catch khusus untuk database error
-    try {
-      const user = await prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          role: role.toUpperCase(),
-        },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        },
-      });
-
-      // Create JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      res.status(201).json({
-        success: true,
-        message: `User ${user.role} berhasil dibuat`,
-        data: {
-          user,
-          token,
-        }
-      });
-    } catch (dbError) {
-      throw new DatabaseError("Gagal membuat user", dbError);
-    }
-  })
+  authController.register
 );
 
-// Public registration - disabled for production
-router.post("/register", validate("register"), asyncHandler(async (req, res) => {
-  return res.status(403).json({
-    success: false,
-    error: "Registrasi publik tidak tersedia. Hubungi admin untuk membuat akun."
-  });
-}));
+/**
+ * @route   POST /api/auth/register
+ * @desc    Public registration (disabled)
+ * @access  Public
+ */
+router.post("/register", validate("register"), authController.publicRegister);
 
-// Login user
-router.post("/login", validate("login"), asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+/**
+ * @route   POST /api/auth/login
+ * @desc    Login user
+ * @access  Public
+ */
+router.post("/login", validate("login"), authController.login);
 
-  // Find user with role
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: {
-      id: true,
-      email: true,
-      password: true,
-      role: true,
-      createdAt: true,
-    },
-  });
+/**
+ * @route   GET /api/auth/users
+ * @desc    Get all users
+ * @access  Private (Admin)
+ */
+router.get("/users", authMiddleware, requireAdmin, authController.getAllUsers);
 
-  if (!user) {
-    throw new AuthenticationError("Email atau password salah");
-  }
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current user profile
+ * @access  Private
+ */
+router.get("/me", authMiddleware, authController.getProfile);
 
-  // Check password dengan timing-safe comparison
-  const isMatch = await bcrypt.compare(password, user.password);
-
-  if (!isMatch) {
-    throw new AuthenticationError("Email atau password salah");
-  }
-
-  // Create JWT token dengan role
-  const token = jwt.sign(
-    { userId: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  res.json({
-    success: true,
-    message: "Login berhasil",
-    data: {
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-      },
-      token,
-    }
-  });
-}));
-
-// Get all users (admin only)
-router.get("/users",
+/**
+ * @route   GET /api/auth/users/:id
+ * @desc    Get user by ID
+ * @access  Private (Admin)
+ */
+router.get(
+  "/users/:id",
   authMiddleware,
   requireAdmin,
-  asyncHandler(async (req, res) => {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    res.json({
-      success: true,
-      data: users
-    });
-  })
+  authController.getUserById
 );
+
+/**
+ * @route   PUT /api/auth/users/:id
+ * @desc    Update user
+ * @access  Private (Admin)
+ */
+router.put(
+  "/users/:id",
+  authMiddleware,
+  requireAdmin,
+  authController.updateUser
+);
+
+/**
+ * @route   DELETE /api/auth/users/:id
+ * @desc    Delete user
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  requireAdmin,
+  authController.deleteUser
+);
+
+/**
+ * @route   POST /api/auth/change-password
+ * @desc    Change password
+ * @access  Private
+ */
+router.post("/change-password", authMiddleware, authController.changePassword);
 
 module.exports = router;

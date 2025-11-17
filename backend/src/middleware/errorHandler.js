@@ -1,10 +1,16 @@
-const { ValidationError } = require('./validation');
-
 // Custom error classes for different error types
+class ValidationError extends Error {
+  constructor(message, field) {
+    super(message);
+    this.name = "ValidationError";
+    this.field = field;
+    this.statusCode = 400;
+  }
+}
 class DatabaseError extends Error {
   constructor(message, originalError) {
     super(message);
-    this.name = 'DatabaseError';
+    this.name = "DatabaseError";
     this.statusCode = 500;
     this.originalError = originalError;
   }
@@ -13,7 +19,7 @@ class DatabaseError extends Error {
 class AuthenticationError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'AuthenticationError';
+    this.name = "AuthenticationError";
     this.statusCode = 401;
   }
 }
@@ -21,7 +27,7 @@ class AuthenticationError extends Error {
 class AuthorizationError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'AuthorizationError';
+    this.name = "AuthorizationError";
     this.statusCode = 403;
   }
 }
@@ -29,7 +35,7 @@ class AuthorizationError extends Error {
 class NotFoundError extends Error {
   constructor(resource) {
     super(`${resource} not found`);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
     this.statusCode = 404;
     this.resource = resource;
   }
@@ -38,7 +44,7 @@ class NotFoundError extends Error {
 class ConflictError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'ConflictError';
+    this.name = "ConflictError";
     this.statusCode = 409;
   }
 }
@@ -46,7 +52,7 @@ class ConflictError extends Error {
 class RateLimitError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
     this.statusCode = 429;
   }
 }
@@ -57,11 +63,11 @@ const errorHandler = (err, req, res, next) => {
   console.error(`[${new Date().toISOString()}] Error:`, {
     name: err.name,
     message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
     url: req.url,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get("User-Agent"),
   });
 
   // Jika response sudah dikirim, delegate ke default Express error handler
@@ -73,129 +79,129 @@ const errorHandler = (err, req, res, next) => {
   if (err instanceof ValidationError) {
     return res.status(400).json({
       success: false,
-      error: 'Validation Error',
+      error: "Validation Error",
       field: err.field,
       message: err.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof AuthenticationError) {
     return res.status(401).json({
       success: false,
-      error: 'Authentication Error',
+      error: "Authentication Error",
       message: err.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof AuthorizationError) {
     return res.status(403).json({
       success: false,
-      error: 'Authorization Error',
+      error: "Authorization Error",
       message: err.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof NotFoundError) {
     return res.status(404).json({
       success: false,
-      error: 'Not Found',
+      error: "Not Found",
       message: err.message,
       resource: err.resource,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof ConflictError) {
     return res.status(409).json({
       success: false,
-      error: 'Conflict',
+      error: "Conflict",
       message: err.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof RateLimitError) {
     return res.status(429).json({
       success: false,
-      error: 'Rate Limit Exceeded',
+      error: "Rate Limit Exceeded",
       message: err.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   if (err instanceof DatabaseError) {
     return res.status(500).json({
       success: false,
-      error: 'Database Error',
-      message: 'Terjadi kesalahan pada database',
+      error: "Database Error",
+      message: "Terjadi kesalahan pada database",
       timestamp: new Date().toISOString(),
-      ...(process.env.NODE_ENV === 'development' && {
+      ...(process.env.NODE_ENV === "development" && {
         details: err.message,
-        originalError: err.originalError?.message
-      })
+        originalError: err.originalError?.message,
+      }),
     });
   }
 
   // Handle JWT errors
-  if (err.name === 'JsonWebTokenError') {
+  if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
       success: false,
-      error: 'Invalid Token',
-      message: 'Token tidak valid',
-      timestamp: new Date().toISOString()
+      error: "Invalid Token",
+      message: "Token tidak valid",
+      timestamp: new Date().toISOString(),
     });
   }
 
-  if (err.name === 'TokenExpiredError') {
+  if (err.name === "TokenExpiredError") {
     return res.status(401).json({
       success: false,
-      error: 'Token Expired',
-      message: 'Token sudah kadaluarsa',
-      timestamp: new Date().toISOString()
+      error: "Token Expired",
+      message: "Token sudah kadaluarsa",
+      timestamp: new Date().toISOString(),
     });
   }
 
   // Handle Prisma errors
   if (err.code) {
     switch (err.code) {
-      case 'P2002': // Unique constraint failed
+      case "P2002": // Unique constraint failed
         return res.status(409).json({
           success: false,
-          error: 'Conflict',
-          message: 'Data sudah ada',
+          error: "Conflict",
+          message: "Data sudah ada",
           field: err.meta?.target?.[0],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
-      case 'P2025': // Record not found
+      case "P2025": // Record not found
         return res.status(404).json({
           success: false,
-          error: 'Not Found',
-          message: 'Data tidak ditemukan',
-          timestamp: new Date().toISOString()
+          error: "Not Found",
+          message: "Data tidak ditemukan",
+          timestamp: new Date().toISOString(),
         });
 
-      case 'P2003': // Foreign key constraint
+      case "P2003": // Foreign key constraint
         return res.status(400).json({
           success: false,
-          error: 'Validation Error',
-          message: 'Referensi data tidak valid',
-          timestamp: new Date().toISOString()
+          error: "Validation Error",
+          message: "Referensi data tidak valid",
+          timestamp: new Date().toISOString(),
         });
 
       default:
         return res.status(500).json({
           success: false,
-          error: 'Database Error',
-          message: 'Terjadi kesalahan pada database',
+          error: "Database Error",
+          message: "Terjadi kesalahan pada database",
           timestamp: new Date().toISOString(),
-          ...(process.env.NODE_ENV === 'development' && {
+          ...(process.env.NODE_ENV === "development" && {
             code: err.code,
-            meta: err.meta
-          })
+            meta: err.meta,
+          }),
         });
     }
   }
@@ -204,13 +210,13 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
-    error: statusCode === 500 ? 'Internal Server Error' : 'Error',
-    message: statusCode === 500 ? 'Terjadi kesalahan pada server' : err.message,
+    error: statusCode === 500 ? "Internal Server Error" : "Error",
+    message: statusCode === 500 ? "Terjadi kesalahan pada server" : err.message,
     timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(process.env.NODE_ENV === "development" && {
       stack: err.stack,
-      name: err.name
-    })
+      name: err.name,
+    }),
   });
 };
 
@@ -218,9 +224,9 @@ const errorHandler = (err, req, res, next) => {
 const notFoundHandler = (req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Not Found',
+    error: "Not Found",
     message: `Route ${req.method} ${req.url} tidak ditemukan`,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
@@ -229,26 +235,6 @@ const asyncHandler = (fn) => {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
-};
-
-// Custom error untuk environment variable validation
-class EnvironmentError extends Error {
-  constructor(missingVar) {
-    super(`Environment variable ${missingVar} is required but not set`);
-    this.name = 'EnvironmentError';
-    this.statusCode = 500;
-    this.missingVar = missingVar;
-  }
-};
-
-// Validate required environment variables
-const validateEnvironment = () => {
-  const requiredVars = ['JWT_SECRET', 'DATABASE_URL'];
-  const missingVars = requiredVars.filter(varName => !process.env[varName]);
-
-  if (missingVars.length > 0) {
-    throw new EnvironmentError(missingVars.join(', '));
-  }
 };
 
 module.exports = {
@@ -262,6 +248,4 @@ module.exports = {
   NotFoundError,
   ConflictError,
   RateLimitError,
-  EnvironmentError,
-  validateEnvironment
 };

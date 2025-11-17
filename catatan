@@ -1,0 +1,83 @@
+# ==========================================
+# Portal Banking - Environment Configuration
+# ==========================================
+# Copy this file to .env and update with your values
+# NEVER commit .env file to version control!
+
+# ==========================================
+# JWT Configuration
+# ==========================================
+JWT_SECRET=your-super-secure-random-jwt-secret-key-here-min-32-chars
+# Generate strong secret: openssl rand -base64 32
+
+# ==========================================
+# Database Configuration
+# ==========================================
+DATABASE_URL=postgresql://username:password@localhost:5433/portal_banking
+# For production, use strong credentials and SSL
+
+# ==========================================
+# Seed User Credentials (Development Only)
+# ==========================================
+# Default test users created by npm run seed
+ADMIN_EMAIL=admin@bank.com
+ADMIN_PASSWORD=Admin123!  # Change for production!
+SALES_EMAIL=sales@bank.com
+SALES_PASSWORD=Sales123!  # Change for production!
+
+# ==========================================
+# Frontend Development
+# ==========================================
+# Show test credentials in UI (development only)
+NEXT_PUBLIC_SHOW_TEST_CREDENTIALS=false
+NEXT_PUBLIC_TEST_ADMIN_EMAIL=admin@bank.com
+NEXT_PUBLIC_TEST_SALES_EMAIL=sales@bank.com
+
+# ==========================================
+# Production Security Settings
+# ==========================================
+# Enable additional security in production
+NODE_ENV=production
+# Rate limiting
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+RATE_LIMIT_MAX_REQUESTS=100
+
+# ==========================================
+# Optional: External Services
+# ==========================================
+# Email service (for notifications, password reset)
+EMAIL_SERVICE_PROVIDER=sendgrid
+EMAIL_API_KEY=your-email-service-api-key
+FROM_EMAIL=noreply@yourbank.com
+
+# Redis (for session storage, caching)
+REDIS_URL=redis://localhost:6379
+
+# Monitoring
+LOG_LEVEL=info
+
+
+
+guys kalo mau ngerjain dgx bisa langsung kesini ya, prepost sama ngumpulin tugasnya bisa nunggu vclassnya bener
+
+
+Fakultas Teknologi Industri (FTI), akses DGX melalui hypercomputation-hub.gunadarma.ac.id/fti
+
+
+- Melakukan setup server backend menggunakan Express.js
+- Mendesain database postgre menggunakan ORS Prisma, dan mengisi schema.prisma untuk membuart dua tabel utama yaitu User dan Customer
+- Melakukan migrate untuk membuat tabel tersebut di database PostgreSQL
+- Melakukan seed untuk mengisi data mentah ke tabel Customer dan mengupdate dengan hasil score, nama, dan phoneNumber
+- Membuat API untuk autentikasi yaitu POST /api/auth/login, dan register untuk admin POST /api/auth/register/admin
+- Membuat API untuk customer management, GET /api/customers dan GET /api/customer/:id
+
+
+
+
+
+
+*   **Penggunaan App Router (`app/`)**: Proyek Anda sudah menggunakan App Router dari Next.js, yang merupakan standar terbaru dan direkomendasikan. Ini memungkinkan Anda untuk mengatur rute, layout, dan halaman secara kohesif.
+*   **Pengorganisasian Rute**: Anda telah memisahkan area aplikasi dengan baik ke dalam direktori seperti `admin/`, `dashboard/`, dan `customer/`. Ini adalah praktik yang bagus untuk menjaga kode tetap terorganisir seiring dengan pertumbuhan aplikasi.
+*   **Komponen (`components/`)**: Direktori `components` diatur dengan sangat baik. Anda memisahkannya lebih lanjut menjadi `ui/` (kemungkinan untuk komponen UI dasar seperti Tombol, Input), `forms/`, `layout/`, dan `charts/`. Ini menunjukkan pemikiran yang matang tentang arsitektur komponen dan reusability (kemampuan untuk digunakan kembali).
+*   **Logika Terpusat (`lib/`)**: Memisahkan logika seperti panggilan API (`lib/api`), custom hooks (`lib/hooks`), dan fungsi utilitas (`lib/utils`) adalah praktik terbaik. Ini membuat kode lebih mudah diuji, dikelola, dan tidak tercampur dengan logika tampilan (UI).
+*   **Konteks (`contexts/`)**: Adanya `AuthContext.js` menunjukkan bahwa Anda mengelola state otentikasi secara terpusat, yang sangat penting untuk aplikasi yang memiliki sistem login.
