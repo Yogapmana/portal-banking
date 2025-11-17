@@ -1,323 +1,124 @@
 "use client";
 
-import { createContext, useContext, useReducer, useEffect } from "react";
-import axios from "axios";
+import { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
-// Create axios instance
-const api = axios.create({
-  baseURL: "http://localhost:8000/api",
-});
+const AuthContext = createContext({});
 
-// Add token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Handle token expiry only for expired token, not for wrong password
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Only redirect to home for 401 if it's NOT a login/auth error
-    if (error.response?.status === 401 &&
-        !error.config?.url?.includes('/auth/login') &&
-        !error.config?.url?.includes('/auth/register')) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      sessionStorage.clear(); // Clear session storage
-      window.location.href = "/";
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Initial state
-const initialState = {
-  user: null,
-  token: null,
-  role: null,
-  isLoading: true,
-  isAuthenticated: false,
+// Helper functions for cookies
+const setCookie = (name, value, days = 7) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
 };
 
-// Action types
-const AUTH_ACTIONS = {
-  LOGIN_START: "LOGIN_START",
-  LOGIN_SUCCESS: "LOGIN_SUCCESS",
-  LOGIN_FAILURE: "LOGIN_FAILURE",
-  LOGOUT: "LOGOUT",
-  LOAD_USER: "LOAD_USER",
-  SET_LOADING: "SET_LOADING",
-};
-
-// Reducer
-const authReducer = (state, action) => {
-  switch (action.type) {
-    case AUTH_ACTIONS.LOGIN_START:
-      return {
-        ...state,
-        isLoading: true,
-      };
-
-    case AUTH_ACTIONS.LOGIN_SUCCESS:
-      return {
-        ...state,
-        isAuthenticated: true,
-        user: action.payload.user,
-        role: action.payload.user?.role || null,
-        token: action.payload.token,
-        isLoading: false,
-      };
-
-    case AUTH_ACTIONS.LOGIN_FAILURE:
-      return {
-        ...state,
-        isAuthenticated: false,
-        user: null,
-        role: null,
-        token: null,
-        isLoading: false,
-      };
-
-    case AUTH_ACTIONS.LOGOUT:
-      return {
-        ...state,
-        isAuthenticated: false,
-        user: null,
-        role: null,
-        token: null,
-        isLoading: false,
-      };
-
-    case AUTH_ACTIONS.LOAD_USER:
-      return {
-        ...state,
-        isAuthenticated: true,
-        user: action.payload,
-        role: action.payload?.role || null,
-        isLoading: false,
-      };
-
-    case AUTH_ACTIONS.SET_LOADING:
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-
-    default:
-      return state;
+const getCookie = (name) => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
   }
+  return null;
 };
 
-// Create context
-const AuthContext = createContext();
+const deleteCookie = (name) => {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+};
 
-// Provider component
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Check for existing token on mount
+  // Load user from localStorage and cookie on mount
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem("token");
-      const user = localStorage.getItem("user");
+    const storedToken = getCookie("token") || localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
-      if (token && user) {
-        try {
-          const parsedUser = JSON.parse(user);
-          dispatch({
-            type: AUTH_ACTIONS.LOAD_USER,
-            payload: parsedUser,
-          });
-        } catch (error) {
-          console.error("Failed to parse user data:", error);
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+    if (storedToken && storedUser) {
+      try {
+        // Check if token is expired
+        const decoded = jwtDecode(storedToken);
+        const currentTime = Date.now() / 1000;
+
+        if (decoded.exp < currentTime) {
+          // Token expired
+          logout();
+        } else {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+          // Ensure cookie is set
+          setCookie("token", storedToken);
         }
-      } else {
-        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        logout();
       }
-    };
-
-    initAuth();
+    }
+    setLoading(false);
   }, []);
 
-  // Login function
-  const login = async (email, password) => {
-    try {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-
-      const response = await api.post("/auth/login", { email, password });
-
-      // Handle new response format from backend
-      const responseData = response.data;
-      const user = responseData.data?.user || responseData.user;
-      const token = responseData.data?.token || responseData.token;
-
-      // Store in localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user, token },
-      });
-
-      return { success: true };
-    } catch (error) {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
-
-      // Handle new structured error format from backend
-      if (error.response?.data) {
-        const errorData = error.response.data;
-
-        // If it's our new structured error format
-        if (errorData.success === false && errorData.error) {
-          return {
-            success: false,
-            error: errorData
-          };
-        }
-
-        // Fallback for old format or other errors
-        return {
-          success: false,
-          error: errorData.message || errorData.error || "Login gagal"
-        };
-      }
-
-      return { success: false, error: "Terjadi kesalahan jaringan" };
-    }
+  const login = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    // Save to both localStorage and cookie
+    localStorage.setItem("token", userToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setCookie("token", userToken);
   };
 
-  // Register function
-  const register = async (email, password) => {
-    try {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-
-      const response = await api.post("/auth/register", { email, password });
-
-      // Handle new response format from backend
-      const responseData = response.data;
-      const user = responseData.data?.user || responseData.user;
-      const token = responseData.data?.token || responseData.token;
-
-      // Store in localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user, token },
-      });
-
-      return { success: true };
-    } catch (error) {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
-
-      // Handle new structured error format from backend
-      if (error.response?.data) {
-        const errorData = error.response.data;
-
-        // If it's our new structured error format
-        if (errorData.success === false && errorData.error) {
-          return {
-            success: false,
-            error: errorData
-          };
-        }
-
-        // Fallback for old format or other errors
-        return {
-          success: false,
-          error: errorData.message || errorData.error || "Registrasi gagal"
-        };
-      }
-
-      return { success: false, error: "Terjadi kesalahan jaringan" };
-    }
-  };
-
-  // Admin register function
-  const registerAdmin = async (email, password, role) => {
-    try {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-
-      const response = await api.post("/auth/register/admin", { email, password, role });
-
-      // Handle new response format from backend
-      const responseData = response.data;
-      const user = responseData.data?.user || responseData.user;
-      const token = responseData.data?.token || responseData.token;
-
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user, token },
-      });
-
-      return { success: true };
-    } catch (error) {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE });
-
-      // Handle new structured error format from backend
-      if (error.response?.data) {
-        const errorData = error.response.data;
-
-        // If it's our new structured error format
-        if (errorData.success === false && errorData.error) {
-          return {
-            success: false,
-            error: errorData
-          };
-        }
-
-        // Fallback for old format or other errors
-        return {
-          success: false,
-          error: errorData.message || errorData.error || "Registrasi gagal"
-        };
-      }
-
-      return { success: false, error: "Terjadi kesalahan jaringan" };
-    }
-  };
-
-  // Logout function
   const logout = () => {
+    setUser(null);
+    setToken(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    sessionStorage.clear(); // Clear dashboard state
-    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    deleteCookie("token");
+    router.push("/login");
+  };
 
-    // Redirect to landing page
-    window.location.href = "/";
+  const isAdmin = () => {
+    return user?.role === "ADMIN";
+  };
+
+  const isSalesManager = () => {
+    return user?.role === "SALES_MANAGER";
+  };
+
+  const isSales = () => {
+    return user?.role === "SALES";
+  };
+
+  const hasRole = (roles) => {
+    if (!user) return false;
+    return roles.includes(user.role);
   };
 
   const value = {
-    ...state,
+    user,
+    token,
+    loading,
     login,
-    register,
-    registerAdmin,
     logout,
-    api,
+    isAdmin,
+    isSalesManager,
+    isSales,
+    hasRole,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
+
+export default AuthContext;
