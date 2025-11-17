@@ -166,121 +166,208 @@ export default function CustomerTable({
               Detailed information about the customer
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedCustomer && (
             <div className="grid gap-6">
               {/* Personal Information */}
               <div>
-                <h3 className="mb-3 font-semibold text-lg">Personal Information</h3>
+                <h3 className="mb-3 font-semibold text-lg">
+                  Personal Information
+                </h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Name</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Name
+                    </label>
                     <p className="text-sm">{selectedCustomer.name || "N/A"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                    <p className="text-sm">{selectedCustomer.phoneNumber || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Phone Number
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.phoneNumber || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Age</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Age
+                    </label>
                     <p className="text-sm">{selectedCustomer.age}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Job</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Job
+                    </label>
                     <p className="text-sm capitalize">{selectedCustomer.job}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Marital Status</label>
-                    <p className="text-sm capitalize">{selectedCustomer.marital}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Marital Status
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.marital}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Education</label>
-                    <p className="text-sm capitalize">{selectedCustomer.education?.replace(/\./g, " ")}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Education
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.education?.replace(/\./g, " ")}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Financial Information */}
               <div>
-                <h3 className="mb-3 font-semibold text-lg">Financial Information</h3>
+                <h3 className="mb-3 font-semibold text-lg">
+                  Financial Information
+                </h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Prediction Score</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Prediction Score
+                    </label>
                     <p className="text-sm">
-                      <Badge variant={getScoreBadgeVariant(selectedCustomer.score)} className="mt-1">
+                      <Badge
+                        variant={getScoreBadgeVariant(selectedCustomer.score)}
+                        className="mt-1"
+                      >
                         {formatScore(selectedCustomer.score)}
                       </Badge>
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Housing Loan</label>
-                    <p className="text-sm capitalize">{selectedCustomer.housing}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Housing Loan
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.housing}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Personal Loan</label>
-                    <p className="text-sm capitalize">{selectedCustomer.loan || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Personal Loan
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.loan || "N/A"}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Campaign Information */}
               <div>
-                <h3 className="mb-3 font-semibold text-lg">Campaign Information</h3>
+                <h3 className="mb-3 font-semibold text-lg">
+                  Campaign Information
+                </h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Contact Type</label>
-                    <p className="text-sm capitalize">{selectedCustomer.contact || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Contact Type
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.contact || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Month</label>
-                    <p className="text-sm capitalize">{selectedCustomer.month || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Month
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.month || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Day of Week</label>
-                    <p className="text-sm capitalize">{selectedCustomer.dayOfWeek || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Day of Week
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.dayOfWeek || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Duration (seconds)</label>
-                    <p className="text-sm">{selectedCustomer.duration || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Duration (seconds)
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.duration || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Campaign Contacts</label>
-                    <p className="text-sm">{selectedCustomer.campaign || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Campaign Contacts
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.campaign || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Previous Contacts</label>
-                    <p className="text-sm">{selectedCustomer.previous || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Previous Contacts
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.previous || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Previous Outcome</label>
-                    <p className="text-sm capitalize">{selectedCustomer.poutcome || "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Previous Outcome
+                    </label>
+                    <p className="text-sm capitalize">
+                      {selectedCustomer.poutcome || "N/A"}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Economic Indicators */}
               <div>
-                <h3 className="mb-3 font-semibold text-lg">Economic Indicators</h3>
+                <h3 className="mb-3 font-semibold text-lg">
+                  Economic Indicators
+                </h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Employment Variation Rate</label>
-                    <p className="text-sm">{selectedCustomer.empVarRate ?? "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Employment Variation Rate
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.empVarRate ?? "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Consumer Price Index</label>
-                    <p className="text-sm">{selectedCustomer.consPriceIdx ?? "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Consumer Price Index
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.consPriceIdx ?? "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Consumer Confidence Index</label>
-                    <p className="text-sm">{selectedCustomer.consConfIdx ?? "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Consumer Confidence Index
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.consConfIdx ?? "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Euribor 3 Month Rate</label>
-                    <p className="text-sm">{selectedCustomer.euribor3m ?? "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Euribor 3 Month Rate
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.euribor3m ?? "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Number of Employees</label>
-                    <p className="text-sm">{selectedCustomer.nrEmployed ?? "N/A"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Number of Employees
+                    </label>
+                    <p className="text-sm">
+                      {selectedCustomer.nrEmployed ?? "N/A"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -291,13 +378,21 @@ export default function CustomerTable({
                   <h3 className="mb-3 font-semibold text-lg">Assignment</h3>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                      <p className="text-sm">{selectedCustomer.assignedTo.email}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Assigned To
+                      </label>
+                      <p className="text-sm">
+                        {selectedCustomer.assignedTo.email}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Role</label>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Role
+                      </label>
                       <p className="text-sm">
-                        <Badge variant="outline">{selectedCustomer.assignedTo.role}</Badge>
+                        <Badge variant="outline">
+                          {selectedCustomer.assignedTo.role}
+                        </Badge>
                       </p>
                     </div>
                   </div>

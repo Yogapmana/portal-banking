@@ -200,7 +200,8 @@ export default function UserManagementPage() {
                   disabled={formLoading}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Min 8 chars, must include: uppercase, lowercase, number & special char (@$!%*?&)
+                  Min 8 chars, must include: uppercase, lowercase, number &
+                  special char (@$!%*?&)
                 </p>
               </div>
 
