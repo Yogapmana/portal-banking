@@ -23,7 +23,8 @@ import { Loader2, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 import { api } from "@/lib/api";
 
 export default function BulkAssignDialog({
-  selectedCustomers,
+  selectedCustomers, // Array of customer IDs
+  customers, // Array of customer objects
   isOpen,
   onClose,
   onSuccess,
@@ -34,6 +35,10 @@ export default function BulkAssignDialog({
   const [loadingSales, setLoadingSales] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Get selected customer objects from IDs
+  const selectedCustomerObjects =
+    customers?.filter((c) => selectedCustomers.includes(c.id)) || [];
 
   // Fetch sales list when dialog opens
   useEffect(() => {
@@ -74,9 +79,9 @@ export default function BulkAssignDialog({
     setSuccess("");
 
     try {
-      const customerIds = selectedCustomers.map((c) => c.id);
+      // selectedCustomers is already an array of IDs
       const response = await api.customers.bulkAssign(
-        customerIds,
+        selectedCustomers,
         parseInt(selectedSales)
       );
 
@@ -105,8 +110,8 @@ export default function BulkAssignDialog({
     setSuccess("");
 
     try {
-      const customerIds = selectedCustomers.map((c) => c.id);
-      const response = await api.customers.bulkUnassign(customerIds);
+      // selectedCustomers is already an array of IDs
+      const response = await api.customers.bulkUnassign(selectedCustomers);
 
       setSuccess(response.message || "Customer berhasil di-unassign");
 
@@ -151,14 +156,14 @@ export default function BulkAssignDialog({
           <div className="rounded-lg border p-3 bg-gray-50">
             <p className="text-sm font-medium mb-2">Customer yang dipilih:</p>
             <div className="flex flex-wrap gap-2">
-              {selectedCustomers.slice(0, 5).map((customer) => (
+              {selectedCustomerObjects.slice(0, 5).map((customer) => (
                 <Badge key={customer.id} variant="secondary">
                   {customer.name || `ID: ${customer.id}`}
                 </Badge>
               ))}
-              {selectedCustomers.length > 5 && (
+              {selectedCustomerObjects.length > 5 && (
                 <Badge variant="outline">
-                  +{selectedCustomers.length - 5} lainnya
+                  +{selectedCustomerObjects.length - 5} lainnya
                 </Badge>
               )}
             </div>

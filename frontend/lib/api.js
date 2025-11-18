@@ -95,6 +95,10 @@ export const api = {
     getUsers: async () => {
       return apiFetch("/auth/users");
     },
+
+    getSalesList: async () => {
+      return apiFetch("/auth/sales-list");
+    },
   },
 
   // Customer endpoints
@@ -149,8 +153,70 @@ export const api = {
       });
     },
 
+    bulkAssign: async (customerIds, salesId) => {
+      return apiFetch("/customers/bulk-assign", {
+        method: "POST",
+        body: JSON.stringify({ customerIds, salesId }),
+      });
+    },
+
+    bulkUnassign: async (customerIds) => {
+      return apiFetch("/customers/bulk-unassign", {
+        method: "POST",
+        body: JSON.stringify({ customerIds }),
+      });
+    },
+
     getFilterOptions: async () => {
       return apiFetch("/customers/filters/options");
+    },
+  },
+
+  // Call logs endpoints
+  callLogs: {
+    create: async (customerId, callLogData) => {
+      return apiFetch("/call-logs", {
+        method: "POST",
+        body: JSON.stringify({ customerId, ...callLogData }),
+      });
+    },
+
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(`/call-logs${queryString ? `?${queryString}` : ""}`);
+    },
+
+    getById: async (id) => {
+      return apiFetch(`/call-logs/${id}`);
+    },
+
+    getByCustomer: async (customerId) => {
+      return apiFetch(`/call-logs/customer/${customerId}`);
+    },
+
+    update: async (id, callLogData) => {
+      return apiFetch(`/call-logs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(callLogData),
+      });
+    },
+
+    delete: async (id) => {
+      return apiFetch(`/call-logs/${id}`, {
+        method: "DELETE",
+      });
+    },
+
+    getStatistics: async () => {
+      return apiFetch("/call-logs/statistics");
     },
   },
 

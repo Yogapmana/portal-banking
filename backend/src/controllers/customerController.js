@@ -85,6 +85,45 @@ class CustomerController {
   });
 
   /**
+   * Bulk assign customers to sales
+   * @route POST /api/customers/bulk-assign
+   */
+  bulkAssignCustomers = asyncHandler(async (req, res) => {
+    const { customerIds, salesId } = req.body;
+
+    const result = await this.customerService.bulkAssignCustomers(
+      customerIds,
+      parseInt(salesId),
+      req.user
+    );
+
+    res.json({
+      success: true,
+      message: `${result.count} customer berhasil di-assign`,
+      data: result,
+    });
+  });
+
+  /**
+   * Bulk unassign customers from sales
+   * @route POST /api/customers/bulk-unassign
+   */
+  bulkUnassignCustomers = asyncHandler(async (req, res) => {
+    const { customerIds } = req.body;
+
+    const result = await this.customerService.bulkUnassignCustomers(
+      customerIds,
+      req.user
+    );
+
+    res.json({
+      success: true,
+      message: `${result.count} customer berhasil di-unassign`,
+      data: result,
+    });
+  });
+
+  /**
    * Create new customer
    * @route POST /api/customers
    */

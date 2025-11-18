@@ -78,11 +78,10 @@ export default function CustomerDetailDialog({
     setSubmitting(true);
 
     try {
-      await api.callLogs.create(
-        customer.id,
-        callLogForm.status,
-        callLogForm.notes
-      );
+      await api.callLogs.create(customer.id, {
+        status: callLogForm.status,
+        notes: callLogForm.notes,
+      });
 
       setSuccess("Call log berhasil disimpan!");
       setCallLogForm({ status: "", notes: "" });

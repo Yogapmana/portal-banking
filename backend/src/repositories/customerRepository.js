@@ -244,6 +244,27 @@ class CustomerRepository {
   }
 
   /**
+   * Bulk update salesId for multiple customers
+   * @param {Array<number>} customerIds - Array of customer IDs
+   * @param {number|null} salesId - Sales user ID or null to unassign
+   * @returns {Promise<number>} Number of updated records
+   */
+  async bulkUpdateSalesId(customerIds, salesId) {
+    const result = await this.prisma.customer.updateMany({
+      where: {
+        id: {
+          in: customerIds.map((id) => parseInt(id)),
+        },
+      },
+      data: {
+        salesId: salesId ? parseInt(salesId) : null,
+      },
+    });
+
+    return result.count;
+  }
+
+  /**
    * Delete customer
    * @param {number} id - Customer ID
    * @returns {Promise<Object>} Deleted customer

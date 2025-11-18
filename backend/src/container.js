@@ -3,14 +3,17 @@ const { getPrismaClient } = require("./config/database");
 // Repositories
 const UserRepository = require("./repositories/userRepository");
 const CustomerRepository = require("./repositories/customerRepository");
+const CallLogRepository = require("./repositories/callLogRepository");
 
 // Services
 const AuthService = require("./services/authService");
 const CustomerService = require("./services/customerService");
+const CallLogService = require("./services/callLogService");
 
 // Controllers
 const AuthController = require("./controllers/authController");
 const CustomerController = require("./controllers/customerController");
+const CallLogController = require("./controllers/callLogController");
 
 /**
  * Dependency Injection Container
@@ -37,6 +40,9 @@ class Container {
     this.dependencies.customerRepository = new CustomerRepository(
       this.dependencies.prismaClient
     );
+    this.dependencies.callLogRepository = new CallLogRepository(
+      this.dependencies.prismaClient
+    );
 
     // Services
     this.dependencies.authService = new AuthService(
@@ -46,6 +52,10 @@ class Container {
       this.dependencies.customerRepository,
       this.dependencies.userRepository
     );
+    this.dependencies.callLogService = new CallLogService(
+      this.dependencies.callLogRepository,
+      this.dependencies.customerRepository
+    );
 
     // Controllers
     this.dependencies.authController = new AuthController(
@@ -53,6 +63,9 @@ class Container {
     );
     this.dependencies.customerController = new CustomerController(
       this.dependencies.customerService
+    );
+    this.dependencies.callLogController = new CallLogController(
+      this.dependencies.callLogService
     );
   }
 
@@ -122,6 +135,30 @@ class Container {
    */
   getCustomerController() {
     return this.get("customerController");
+  }
+
+  /**
+   * Get CallLog Repository
+   * @returns {CallLogRepository}
+   */
+  getCallLogRepository() {
+    return this.get("callLogRepository");
+  }
+
+  /**
+   * Get CallLog Service
+   * @returns {CallLogService}
+   */
+  getCallLogService() {
+    return this.get("callLogService");
+  }
+
+  /**
+   * Get CallLog Controller
+   * @returns {CallLogController}
+   */
+  getCallLogController() {
+    return this.get("callLogController");
   }
 }
 

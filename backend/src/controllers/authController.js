@@ -140,6 +140,19 @@ class AuthController {
   });
 
   /**
+   * Get list of SALES users (SALES_MANAGER only)
+   * @route GET /api/auth/sales-list
+   */
+  getSalesList = asyncHandler(async (req, res) => {
+    const users = await this.authService.getUsersByRole("SALES");
+
+    res.json({
+      success: true,
+      data: users,
+    });
+  });
+
+  /**
    * Public registration endpoint (disabled)
    * @route POST /api/auth/register
    */

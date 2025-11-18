@@ -39,15 +39,13 @@ class CustomerService {
 
     // Role-based filtering
     if (user.role === "SALES") {
-      const salesConditions = [
-        { salesId: null }, // Unassigned customers
-        { salesId: user.userId }, // Assigned to this sales
-      ];
+      // SALES only see customers assigned to them
+      const salesCondition = { salesId: user.userId };
 
       if (searchConditions.length > 0) {
-        where.AND = [{ OR: salesConditions }, { OR: searchConditions }];
+        where.AND = [salesCondition, { OR: searchConditions }];
       } else {
-        where.OR = salesConditions;
+        where.salesId = user.userId;
       }
     } else {
       // Admin and Sales Manager can see all customers
@@ -249,6 +247,69 @@ class CustomerService {
 
     // Unassign customer
     return this.customerRepository.unassignFromSales(customerId);
+  }
+
+  /**
+   * Bulk assign customers to sales
+   * @param {Array<number>} customerIds - Array of customer IDs
+   * @param {number} salesId - Sales user ID
+   * @param {Object} user - Authenticated user (must be SALES_MANAGER)
+   * @returns {Promise<Object>} Result with count
+   */
+  async bulkAssignCustomers(customerIds, salesId, user) {
+    // Only SALES_MANAGER can bulk assign
+    if (user.role !== "SALES_MANAGER") {
+      throw new AuthorizationError(
+        "Hanya Sales Manager yang dapat melakukan bulk assign"
+      );
+    }
+
+    // Verify sales user exists and has SALES role
+    const salesUser = await this.userRepository.findById(salesId);
+    if (!salesUser) {
+      throw new NotFoundError("Sales user tidak ditemukan");
+    }
+
+    if (salesUser.role !== "SALES") {
+      throw new ValidationError("User yang dipilih bukan Sales");
+    }
+
+    // Bulk update
+    const count = await this.customerRepository.bulkUpdateSalesId(
+      customerIds,
+      salesId
+    );
+
+    return {
+      count,
+      salesId,
+      salesEmail: salesUser.email,
+    };
+  }
+
+  /**
+   * Bulk unassign customers from sales
+   * @param {Array<number>} customerIds - Array of customer IDs
+   * @param {Object} user - Authenticated user (must be SALES_MANAGER)
+   * @returns {Promise<Object>} Result with count
+   */
+  async bulkUnassignCustomers(customerIds, user) {
+    // Only SALES_MANAGER can bulk unassign
+    if (user.role !== "SALES_MANAGER") {
+      throw new AuthorizationError(
+        "Hanya Sales Manager yang dapat melakukan bulk unassign"
+      );
+    }
+
+    // Bulk update to null
+    const count = await this.customerRepository.bulkUpdateSalesId(
+      customerIds,
+      null
+    );
+
+    return {
+      count,
+    };
   }
 
   /**

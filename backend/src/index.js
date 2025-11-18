@@ -7,6 +7,7 @@ const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 // Import routes
 const authRoutes = require("./routes/auth");
 const customerRoutes = require("./routes/customers");
+const callLogRoutes = require("./routes/callLogs");
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
  */
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
+app.use("/api/call-logs", callLogRoutes);
 
 /**
  * Health check endpoint

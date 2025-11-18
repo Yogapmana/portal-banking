@@ -26,6 +26,30 @@ router.get(
 );
 
 /**
+ * @route   POST /api/customers/bulk-assign
+ * @desc    Bulk assign customers to sales
+ * @access  Private (Manager only)
+ */
+router.post(
+  "/bulk-assign",
+  authMiddleware,
+  requireAdminOrManager,
+  customerController.bulkAssignCustomers
+);
+
+/**
+ * @route   POST /api/customers/bulk-unassign
+ * @desc    Bulk unassign customers from sales
+ * @access  Private (Manager only)
+ */
+router.post(
+  "/bulk-unassign",
+  authMiddleware,
+  requireAdminOrManager,
+  customerController.bulkUnassignCustomers
+);
+
+/**
  * @route   GET /api/customers/sales/:salesId/count
  * @desc    Get customer count for a sales user
  * @access  Private (Admin/Manager)

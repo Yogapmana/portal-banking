@@ -11,14 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import CustomerDetailDialog from "./CustomerDetailDialog";
+import BulkAssignDialog from "./BulkAssignDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CustomerTable({
   customers,
@@ -26,8 +23,11 @@ export default function CustomerTable({
   onPageChange,
   onRefresh,
 }) {
+  const { user } = useAuth();
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
 
   const getScoreBadgeVariant = (score) => {
     if (score === null || score === undefined) return "secondary";
@@ -46,8 +46,43 @@ export default function CustomerTable({
     setIsDetailOpen(true);
   };
 
+  const toggleCustomerSelection = (customerId) => {
+    setSelectedCustomers((prev) =>
+      prev.includes(customerId)
+        ? prev.filter((id) => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCustomers.length === customers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(customers.map((c) => c.id));
+    }
+  };
+
+  const handleBulkAssignSuccess = () => {
+    setSelectedCustomers([]);
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Bulk Actions Bar - Only for SALES_MANAGER */}
+      {user?.role === "SALES_MANAGER" && selectedCustomers.length > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
+          <div className="text-sm font-medium">
+            {selectedCustomers.length} customer(s) selected
+          </div>
+          <Button onClick={() => setIsBulkAssignOpen(true)} size="sm">
+            Assign ke Sales
+          </Button>
+        </div>
+      )}
+
       {customers.length === 0 ? (
         <div className="py-8 text-center text-muted-foreground">
           No customers found
@@ -58,6 +93,17 @@ export default function CustomerTable({
             <Table>
               <TableHeader>
                 <TableRow>
+                  {user?.role === "SALES_MANAGER" && (
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={
+                          selectedCustomers.length === customers.length &&
+                          customers.length > 0
+                        }
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Score</TableHead>
@@ -73,6 +119,16 @@ export default function CustomerTable({
               <TableBody>
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
+                    {user?.role === "SALES_MANAGER" && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedCustomers.includes(customer.id)}
+                          onCheckedChange={() =>
+                            toggleCustomerSelection(customer.id)
+                          }
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">
                       {customer.name || "-"}
                     </TableCell>
@@ -157,251 +213,24 @@ export default function CustomerTable({
         </>
       )}
 
-      {/* Customer Detail Dialog */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the customer
-            </DialogDescription>
-          </DialogHeader>
+      {/* Customer Detail Dialog with Call Logs */}
+      <CustomerDetailDialog
+        customer={selectedCustomer}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        onCallLogCreated={onRefresh}
+      />
 
-          {selectedCustomer && (
-            <div className="grid gap-6">
-              {/* Personal Information */}
-              <div>
-                <h3 className="mb-3 font-semibold text-lg">
-                  Personal Information
-                </h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Name
-                    </label>
-                    <p className="text-sm">{selectedCustomer.name || "N/A"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Phone Number
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.phoneNumber || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Age
-                    </label>
-                    <p className="text-sm">{selectedCustomer.age}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Job
-                    </label>
-                    <p className="text-sm capitalize">{selectedCustomer.job}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Marital Status
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.marital}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Education
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.education?.replace(/\./g, " ")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Financial Information */}
-              <div>
-                <h3 className="mb-3 font-semibold text-lg">
-                  Financial Information
-                </h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Prediction Score
-                    </label>
-                    <p className="text-sm">
-                      <Badge
-                        variant={getScoreBadgeVariant(selectedCustomer.score)}
-                        className="mt-1"
-                      >
-                        {formatScore(selectedCustomer.score)}
-                      </Badge>
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Housing Loan
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.housing}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Personal Loan
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.loan || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Campaign Information */}
-              <div>
-                <h3 className="mb-3 font-semibold text-lg">
-                  Campaign Information
-                </h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Contact Type
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.contact || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Month
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.month || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Day of Week
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.dayOfWeek || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Duration (seconds)
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.duration || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Campaign Contacts
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.campaign || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Previous Contacts
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.previous || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Previous Outcome
-                    </label>
-                    <p className="text-sm capitalize">
-                      {selectedCustomer.poutcome || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Economic Indicators */}
-              <div>
-                <h3 className="mb-3 font-semibold text-lg">
-                  Economic Indicators
-                </h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Employment Variation Rate
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.empVarRate ?? "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Consumer Price Index
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.consPriceIdx ?? "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Consumer Confidence Index
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.consConfIdx ?? "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Euribor 3 Month Rate
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.euribor3m ?? "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Number of Employees
-                    </label>
-                    <p className="text-sm">
-                      {selectedCustomer.nrEmployed ?? "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Assignment Information */}
-              {selectedCustomer.assignedTo && (
-                <div>
-                  <h3 className="mb-3 font-semibold text-lg">Assignment</h3>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Assigned To
-                      </label>
-                      <p className="text-sm">
-                        {selectedCustomer.assignedTo.email}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Role
-                      </label>
-                      <p className="text-sm">
-                        <Badge variant="outline">
-                          {selectedCustomer.assignedTo.role}
-                        </Badge>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Bulk Assign Dialog - Only for SALES_MANAGER */}
+      {user?.role === "SALES_MANAGER" && (
+        <BulkAssignDialog
+          isOpen={isBulkAssignOpen}
+          onClose={() => setIsBulkAssignOpen(false)}
+          selectedCustomers={selectedCustomers}
+          customers={customers}
+          onSuccess={handleBulkAssignSuccess}
+        />
+      )}
     </div>
   );
 }
