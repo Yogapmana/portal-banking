@@ -18,14 +18,15 @@ model User {
 
   // Relations
   assignedCustomers Customer[] @relation("CustomerAssignment")
+  callLogs          CallLog[]  @relation("UserCallLogs")
 
   @@map("users")
 }
 
 enum Role {
-  ADMIN          // Bisa membuat akun dan full access
-  SALES_MANAGER  // Baca performa sales dan manage data customer
-  SALES          // Hanya akses customer yang diassign
+  ADMIN // Bisa membuat akun dan full access
+  SALES_MANAGER // Baca performa sales dan manage data customer
+  SALES // Hanya akses customer yang diassign
 }
 
 // --- INI MODEL BARU ANDA ---
@@ -35,7 +36,7 @@ model Customer {
   originalId Int @unique // ID dari CSV (row number)
 
   // Assignment ke sales
-  salesId    Int? @map("sales_id")
+  salesId    Int?  @map("sales_id")
   assignedTo User? @relation("CustomerAssignment", fields: [salesId], references: [id])
 
   // Kolom dari nasabah_prioritas.csv (opsional)
@@ -64,4 +65,38 @@ model Customer {
   consConfIdx  Float  @map("cons.conf.idx")
   euribor3m    Float
   nrEmployed   Float  @map("nr.employed")
+
+  // Relations
+  callLogs CallLog[] @relation("CustomerCallLogs")
+}
+
+// Model untuk Call Log
+model CallLog {
+  id         Int        @id @default(autoincrement())
+  customerId Int        @map("customer_id")
+  userId     Int        @map("user_id")
+  status     CallStatus
+  notes      String?    @db.Text
+  callDate   DateTime   @default(now()) @map("call_date")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  customer Customer @relation("CustomerCallLogs", fields: [customerId], references: [id], onDelete: Cascade)
+  user     User     @relation("UserCallLogs", fields: [userId], references: [id], onDelete: Restrict)
+
+  // Indexes
+  @@index([customerId])
+  @@index([userId])
+  @@index([status])
+  @@map("call_logs")
+}
+
+enum CallStatus {
+  INTERESTED
+  NOT_INTERESTED
+  NO_ANSWER
+  WRONG_NUMBER
+  CALLBACK
+  COMPLETED
 }
