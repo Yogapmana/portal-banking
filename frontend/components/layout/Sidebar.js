@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Users, UserCog } from "lucide-react";
+import { LayoutDashboard, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Sidebar() {
@@ -15,12 +15,6 @@ export default function Sidebar() {
       name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
-      roles: ["ADMIN", "SALES_MANAGER", "SALES"],
-    },
-    {
-      name: "Customers",
-      href: "/customers",
-      icon: Users,
       roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
     {
