@@ -10,10 +10,7 @@ let prismaInstance = null;
 const getPrismaClient = () => {
   if (!prismaInstance) {
     prismaInstance = new PrismaClient({
-      log:
-        config.server.env === "development"
-          ? ["query", "info", "warn", "error"]
-          : ["error"],
+      log: config.server.env === "development" ? ["warn", "error"] : ["error"],
       errorFormat: config.server.env === "development" ? "pretty" : "minimal",
     });
 

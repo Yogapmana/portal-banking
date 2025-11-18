@@ -89,99 +89,230 @@ export default function CustomerTable({
         </div>
       ) : (
         <>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {user?.role === "SALES_MANAGER" && (
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={
-                          selectedCustomers.length === customers.length &&
-                          customers.length > 0
-                        }
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                  )}
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Age</TableHead>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Marital</TableHead>
-                  <TableHead>Education</TableHead>
-                  <TableHead>Housing</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customers.map((customer) => (
-                  <TableRow key={customer.id}>
+          {/* Desktop Table */}
+          <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
                     {user?.role === "SALES_MANAGER" && (
-                      <TableCell>
+                      <TableHead className="w-12 font-semibold">
                         <Checkbox
-                          checked={selectedCustomers.includes(customer.id)}
-                          onCheckedChange={() =>
-                            toggleCustomerSelection(customer.id)
+                          checked={
+                            selectedCustomers.length === customers.length &&
+                            customers.length > 0
                           }
+                          onCheckedChange={toggleSelectAll}
                         />
-                      </TableCell>
+                      </TableHead>
                     )}
-                    <TableCell className="font-medium">
-                      {customer.name || "-"}
-                    </TableCell>
-                    <TableCell>{customer.phoneNumber || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant={getScoreBadgeVariant(customer.score)}>
-                        {formatScore(customer.score)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{customer.age}</TableCell>
-                    <TableCell className="capitalize">{customer.job}</TableCell>
-                    <TableCell className="capitalize">
-                      {customer.marital}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {customer.education?.replace(/\./g, " ")}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {customer.housing}
-                    </TableCell>
-                    <TableCell>
-                      {customer.assignedTo ? (
-                        <div className="text-sm">
-                          <div>{customer.assignedTo.email}</div>
-                          <Badge variant="outline" className="mt-1">
-                            {customer.assignedTo.role}
+                    <TableHead className="font-semibold">Nasabah</TableHead>
+                    <TableHead className="font-semibold">No. Telepon</TableHead>
+                    <TableHead className="font-semibold">Score</TableHead>
+                    <TableHead className="font-semibold">Info</TableHead>
+                    <TableHead className="font-semibold text-right">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customers.map((customer) => (
+                    <TableRow
+                      key={customer.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      {user?.role === "SALES_MANAGER" && (
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedCustomers.includes(customer.id)}
+                            onCheckedChange={() =>
+                              toggleCustomerSelection(customer.id)
+                            }
+                          />
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                            {(customer.name || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">
+                              {customer.name || "-"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {customer.age} tahun • {customer.marital}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm text-foreground">
+                          {customer.phoneNumber || "-"}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={getScoreBadgeVariant(customer.score)}
+                          className="font-medium"
+                        >
+                          {formatScore(customer.score)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground">Job:</span>
+                            <span className="font-medium capitalize">
+                              {customer.job}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground capitalize">
+                            {customer.education?.replace(/\./g, " ")}
+                          </div>
+                          <Badge
+                            variant={
+                              customer.housing === "yes"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              customer.housing === "yes"
+                                ? "bg-green-100 text-green-800 hover:bg-green-200 text-xs"
+                                : "text-xs"
+                            }
+                          >
+                            {customer.housing === "yes"
+                              ? "Punya Rumah"
+                              : "Belum"}
                           </Badge>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          Unassigned
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetail(customer)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetail(customer)}
+                          className="hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Detail
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {customers.map((customer) => (
+              <div
+                key={customer.id}
+                className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
+              >
+                {/* Header with Checkbox and Avatar */}
+                <div className="flex items-start gap-3 mb-3">
+                  {user?.role === "SALES_MANAGER" && (
+                    <Checkbox
+                      checked={selectedCustomers.includes(customer.id)}
+                      onCheckedChange={() =>
+                        toggleCustomerSelection(customer.id)
+                      }
+                      className="mt-1"
+                    />
+                  )}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                    {(customer.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">
+                      {customer.name || "-"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.phoneNumber || "-"}
+                    </p>
+                    <div className="mt-1">
+                      <Badge
+                        variant={getScoreBadgeVariant(customer.score)}
+                        className="text-xs"
                       >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Detail
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        {formatScore(customer.score)}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground text-xs">Umur</span>
+                    <p className="font-medium">{customer.age} tahun</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">
+                      Pekerjaan
+                    </span>
+                    <p className="font-medium capitalize truncate">
+                      {customer.job}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">
+                      Status
+                    </span>
+                    <p className="font-medium capitalize">{customer.marital}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">
+                      Pendidikan
+                    </span>
+                    <p className="font-medium capitalize text-xs truncate">
+                      {customer.education?.replace(/\./g, " ")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Assigned To */}
+                <div className="mb-3 pb-3 border-t pt-3">
+                  <span className="text-muted-foreground text-xs block mb-1">
+                    Assigned To
+                  </span>
+                  {customer.assignedTo ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground truncate flex-1">
+                        {customer.assignedTo.email}
+                      </p>
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {customer.assignedTo.role}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      Unassigned
+                    </span>
+                  )}
+                </div>
+
+                {/* Action Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewDetail(customer)}
+                  className="w-full hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Lihat Detail
+                </Button>
+              </div>
+            ))}
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
               Showing {(pagination.currentPage - 1) * 20 + 1} to{" "}
               {Math.min(pagination.currentPage * 20, pagination.totalCustomers)}{" "}
               of {pagination.totalCustomers} customers
@@ -193,10 +324,10 @@ export default function CustomerTable({
                 onClick={() => onPageChange(pagination.currentPage - 1)}
                 disabled={!pagination.hasPrev}
               >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
+                <ChevronLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Previous</span>
               </Button>
-              <div className="text-sm">
+              <div className="text-sm px-2">
                 Page {pagination.currentPage} of {pagination.totalPages}
               </div>
               <Button
@@ -205,8 +336,8 @@ export default function CustomerTable({
                 onClick={() => onPageChange(pagination.currentPage + 1)}
                 disabled={!pagination.hasNext}
               >
-                Next
-                <ChevronRight className="h-4 w-4" />
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="h-4 w-4 sm:ml-2" />
               </Button>
             </div>
           </div>

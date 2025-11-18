@@ -307,21 +307,19 @@ export default function CustomerDetailDialog({
                         <SelectValue placeholder="Pilih status..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="INTERESTED">✅ Tertarik</SelectItem>
+                        <SelectItem value="INTERESTED">Tertarik</SelectItem>
                         <SelectItem value="NOT_INTERESTED">
-                          ❌ Tidak Tertarik
+                          Tidak Tertarik
                         </SelectItem>
-                        <SelectItem value="NO_ANSWER">
-                          📵 Tidak Angkat
-                        </SelectItem>
+                        <SelectItem value="NO_ANSWER">Tidak Angkat</SelectItem>
                         <SelectItem value="WRONG_NUMBER">
-                          ⚠️ Nomor Salah
+                          Nomor Salah
                         </SelectItem>
                         <SelectItem value="CALLBACK">
-                          🔄 Minta Dihubungi Lagi
+                          Minta Dihubungi Lagi
                         </SelectItem>
                         <SelectItem value="COMPLETED">
-                          🎉 Transaksi Selesai
+                          Transaksi Selesai
                         </SelectItem>
                       </SelectContent>
                     </Select>

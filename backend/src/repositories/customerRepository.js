@@ -77,6 +77,68 @@ class CustomerRepository {
   }
 
   /**
+   * Find customers without call logs with pagination and filters
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Customers with pagination info
+   */
+  async findManyWithoutCallLogs(params) {
+    const { skip, take, where, orderBy, userId } = params;
+
+    // Build where clause to filter customers without call logs
+    const customerWhere = { ...where };
+
+    // Add condition to exclude customers with call logs
+    customerWhere.callLogs = {
+      none: {}
+    };
+
+    // If userId is provided (for non-admin users), only show assigned customers
+    if (userId) {
+      customerWhere.salesId = userId;
+    }
+
+    const [customers, total] = await Promise.all([
+      this.prisma.customer.findMany({
+        where: customerWhere,
+        orderBy,
+        skip,
+        take,
+        select: {
+          id: true,
+          originalId: true,
+          name: true,
+          phoneNumber: true,
+          score: true,
+          age: true,
+          job: true,
+          marital: true,
+          education: true,
+          housing: true,
+          loan: true,
+          contact: true,
+          month: true,
+          duration: true,
+          campaign: true,
+          pdays: true,
+          previous: true,
+          poutcome: true,
+          salesId: true,
+          assignedTo: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+      }),
+      this.prisma.customer.count({ where: customerWhere }),
+    ]);
+
+    return { customers, total };
+  }
+
+  /**
    * Get customer statistics
    * @param {Object} where - Where conditions
    * @returns {Promise<Object>} Statistics

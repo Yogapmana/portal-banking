@@ -8,7 +8,7 @@ import { Users, TrendingUp, Award } from "lucide-react";
 import CustomerTable from "@/components/dashboard/CustomerTable";
 import CustomerFilters from "@/components/dashboard/CustomerFilters";
 
-const fetcher = (params) => api.customers.getAll(params).then((res) => res);
+const fetcher = (params) => api.customers.getPending(params).then((res) => res);
 
 export default function DashboardPage() {
   const [filters, setFilters] = useState({
@@ -66,7 +66,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Overview of customer data and statistics
+          Daftar nasabah yang belum ada riwayat panggilan
         </p>
       </div>
 
@@ -127,10 +127,7 @@ export default function DashboardPage() {
       <CustomerFilters filters={filters} onFilterChange={handleFilterChange} />
 
       {/* Customer Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar Nasabah</CardTitle>
-        </CardHeader>
+      <Card className="hover:shadow-md transition-shadow">
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">

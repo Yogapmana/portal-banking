@@ -170,6 +170,19 @@ export const api = {
     getFilterOptions: async () => {
       return apiFetch("/customers/filters/options");
     },
+
+    getPending: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(`/customers/pending${queryString ? `?${queryString}` : ""}`);
+    },
   },
 
   // Call logs endpoints

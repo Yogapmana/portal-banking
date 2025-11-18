@@ -29,6 +29,9 @@ import {
   AlertCircle,
   Loader2,
   Search,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import api from "@/lib/api";
 
@@ -37,6 +40,9 @@ export default function CallHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ status: "", notes: "" });
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -73,7 +79,12 @@ export default function CallHistoryPage() {
 
       const response = await api.callLogs.getAll(params);
       setCallLogs(response.data || []);
-      setTotalPages(Math.ceil((response.total || 0) / itemsPerPage));
+      setTotalPages(
+        Math.ceil(
+          (response.pagination?.totalItems || response.total || 0) /
+            itemsPerPage
+        )
+      );
     } catch (err) {
       setError(err.message || "Failed to load call logs");
     } finally {
@@ -110,6 +121,47 @@ export default function CallHistoryPage() {
       endDate: "",
     });
     setPage(1);
+  };
+
+  const handleEdit = (callLog) => {
+    setEditingId(callLog.id);
+    setEditForm({
+      status: callLog.status,
+      notes: callLog.notes || "",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({ status: "", notes: "" });
+  };
+
+  const handleUpdate = async (callLogId) => {
+    if (!editForm.status) {
+      setError("Status harus dipilih");
+      return;
+    }
+
+    setUpdateLoading(true);
+    setError("");
+
+    try {
+      await api.callLogs.update(callLogId, editForm);
+
+      // Refresh data
+      await fetchCallLogs();
+
+      // Reset edit mode
+      setEditingId(null);
+      setEditForm({ status: "", notes: "" });
+
+      // Show success message (you could add a toast notification here)
+      console.log("Call log berhasil diupdate");
+    } catch (err) {
+      setError(err.message || "Gagal mengupdate call log");
+    } finally {
+      setUpdateLoading(false);
+    }
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -159,8 +211,8 @@ export default function CallHistoryPage() {
 
       {/* Statistics Cards */}
       {statistics && (
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Panggilan
@@ -172,7 +224,7 @@ export default function CallHistoryPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tertarik</CardTitle>
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -184,7 +236,7 @@ export default function CallHistoryPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Callback</CardTitle>
               <div className="h-2 w-2 rounded-full bg-blue-500" />
@@ -196,7 +248,7 @@ export default function CallHistoryPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Selesai</CardTitle>
               <div className="h-2 w-2 rounded-full bg-green-600" />
@@ -290,7 +342,7 @@ export default function CallHistoryPage() {
 
       {/* Table */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-2 m-2">
           {error && (
             <div className="flex items-center gap-2 rounded-md bg-red-50 p-4 text-sm text-red-600">
               <AlertCircle className="h-4 w-4" />
@@ -308,22 +360,199 @@ export default function CallHistoryPage() {
             </div>
           ) : (
             <>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tanggal & Waktu</TableHead>
-                      <TableHead>Nama Nasabah</TableHead>
-                      <TableHead>No. Telepon</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Catatan</TableHead>
-                      <TableHead>Dibuat Oleh</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {callLogs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-medium">
+              {/* Desktop Table */}
+              <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="font-semibold">Waktu</TableHead>
+                        <TableHead className="font-semibold">Nasabah</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Catatan</TableHead>
+                        <TableHead className="font-semibold">Oleh</TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Aksi
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {callLogs.map((log) => (
+                        <TableRow
+                          key={log.id}
+                          className="hover:bg-muted/30 transition-colors"
+                        >
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-foreground">
+                                {new Date(log.callDate).toLocaleDateString(
+                                  "id-ID",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(log.callDate).toLocaleTimeString(
+                                  "id-ID",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                                {(log.customer?.name || "?")
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground truncate">
+                                  {log.customer?.name || "N/A"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {log.customer?.phoneNumber || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {editingId === log.id ? (
+                              <Select
+                                value={editForm.status}
+                                onValueChange={(value) =>
+                                  setEditForm({ ...editForm, status: value })
+                                }
+                              >
+                                <SelectTrigger className="w-40">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="INTERESTED">
+                                    ✅ Tertarik
+                                  </SelectItem>
+                                  <SelectItem value="NOT_INTERESTED">
+                                    ❌ Tidak Tertarik
+                                  </SelectItem>
+                                  <SelectItem value="NO_ANSWER">
+                                    📵 Tidak Angkat
+                                  </SelectItem>
+                                  <SelectItem value="WRONG_NUMBER">
+                                    ⚠️ Nomor Salah
+                                  </SelectItem>
+                                  <SelectItem value="CALLBACK">
+                                    🔄 Minta Dihubungi Lagi
+                                  </SelectItem>
+                                  <SelectItem value="COMPLETED">
+                                    🎉 Selesai
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge
+                                variant={getStatusBadgeVariant(log.status)}
+                                className="font-medium"
+                              >
+                                {getStatusLabel(log.status)}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            {editingId === log.id ? (
+                              <textarea
+                                className="w-full p-2 border rounded-md text-sm resize-none"
+                                rows={2}
+                                value={editForm.notes}
+                                onChange={(e) =>
+                                  setEditForm({
+                                    ...editForm,
+                                    notes: e.target.value,
+                                  })
+                                }
+                                placeholder="Tulis catatan..."
+                              />
+                            ) : (
+                              <div
+                                className="max-w-xs truncate text-sm text-foreground"
+                                title={log.notes || "-"}
+                              >
+                                {log.notes || "-"}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-foreground">
+                              {log.user?.email || "N/A"}
+                            </p>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {editingId === log.id ? (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleUpdate(log.id)}
+                                  disabled={updateLoading}
+                                  className="hover:bg-primary hover:text-primary-foreground"
+                                >
+                                  {updateLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Save className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                  disabled={updateLoading}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(log)}
+                                className="hover:bg-primary hover:text-primary-foreground"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {callLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
+                  >
+                    {/* Header with Avatar and Name */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                        {(log.customer?.name || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {log.customer?.name || "N/A"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {log.customer?.phoneNumber || "N/A"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
                           {new Date(log.callDate).toLocaleDateString("id-ID", {
                             day: "numeric",
                             month: "short",
@@ -331,30 +560,129 @@ export default function CallHistoryPage() {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
-                        </TableCell>
-                        <TableCell>{log.customer?.name || "N/A"}</TableCell>
-                        <TableCell>
-                          {log.customer?.phoneNumber || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusBadgeVariant(log.status)}>
-                            {getStatusLabel(log.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className="mb-3">
+                      <span className="text-muted-foreground text-xs block mb-1">
+                        Status
+                      </span>
+                      {editingId === log.id ? (
+                        <Select
+                          value={editForm.status}
+                          onValueChange={(value) =>
+                            setEditForm({ ...editForm, status: value })
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INTERESTED">
+                              ✅ Tertarik
+                            </SelectItem>
+                            <SelectItem value="NOT_INTERESTED">
+                              ❌ Tidak Tertarik
+                            </SelectItem>
+                            <SelectItem value="NO_ANSWER">
+                              📵 Tidak Angkat
+                            </SelectItem>
+                            <SelectItem value="WRONG_NUMBER">
+                              ⚠️ Nomor Salah
+                            </SelectItem>
+                            <SelectItem value="CALLBACK">
+                              🔄 Minta Dihubungi Lagi
+                            </SelectItem>
+                            <SelectItem value="COMPLETED">
+                              🎉 Selesai
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant={getStatusBadgeVariant(log.status)}>
+                          {getStatusLabel(log.status)}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Notes */}
+                    <div className="mb-3">
+                      <span className="text-muted-foreground text-xs block mb-1">
+                        Catatan
+                      </span>
+                      {editingId === log.id ? (
+                        <textarea
+                          className="w-full p-2 border rounded-md text-sm resize-none"
+                          rows={3}
+                          value={editForm.notes}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, notes: e.target.value })
+                          }
+                          placeholder="Tulis catatan..."
+                        />
+                      ) : (
+                        <p className="text-sm text-foreground">
                           {log.notes || "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {log.user?.email || "N/A"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Created By */}
+                    <div className="mb-3 pb-3 border-t pt-3">
+                      <span className="text-muted-foreground text-xs block mb-1">
+                        Dibuat Oleh
+                      </span>
+                      <p className="text-sm text-foreground">
+                        {log.user?.email || "N/A"}
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {editingId === log.id ? (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleUpdate(log.id)}
+                          disabled={updateLoading}
+                          className="flex-1"
+                        >
+                          {updateLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Save className="mr-2 h-4 w-4" />
+                              Simpan
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={updateLoading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(log)}
+                        className="w-full hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between border-t p-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t p-4">
                 <div className="text-sm text-muted-foreground">
                   Halaman {page} dari {totalPages}
                 </div>
@@ -365,17 +693,18 @@ export default function CallHistoryPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    <ChevronLeft className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Previous</span>
                   </Button>
+                  <span className="text-sm px-2">{page}</span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                   >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="h-4 w-4 sm:ml-2" />
                   </Button>
                 </div>
               </div>

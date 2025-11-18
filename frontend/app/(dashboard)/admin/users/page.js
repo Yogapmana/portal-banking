@@ -262,55 +262,167 @@ export default function UserManagementPage() {
               Error loading users: {usersError.message}
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users?.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.id}</TableCell>
-                      <TableCell className="font-medium">
-                        {user.email}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="font-semibold">User</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">Role</TableHead>
+                        <TableHead className="font-semibold">
+                          Created At
+                        </TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Actions
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users?.map((user) => (
+                        <TableRow
+                          key={user.id}
+                          className="hover:bg-muted/30 transition-colors"
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                                {user.email.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground">
+                                  User #{user.id}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {user.role}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-foreground">
+                              {user.email}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getRoleBadgeVariant(user.role)}
+                              className="font-medium"
+                            >
+                              {user.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-foreground">
+                                {new Date(user.createdAt).toLocaleDateString(
+                                  "id-ID",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(user.createdAt).toLocaleTimeString(
+                                  "id-ID",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setUserToDelete(user);
+                                setShowDeleteDialog(true);
+                              }}
+                              disabled={user.id === currentUser?.id}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {users?.map((user) => (
+                  <div
+                    key={user.id}
+                    className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
+                  >
+                    {/* Header with Avatar */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                        {user.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground">
+                          User #{user.id}
+                        </h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                        <div className="mt-2">
+                          <Badge variant={getRoleBadgeVariant(user.role)}>
+                            {user.role}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Created At */}
+                    <div className="mb-3 pb-3 border-t pt-3">
+                      <span className="text-muted-foreground text-xs block mb-1">
+                        Created At
+                      </span>
+                      <p className="text-sm text-foreground">
                         {new Date(user.createdAt).toLocaleDateString("id-ID", {
                           year: "numeric",
-                          month: "short",
+                          month: "long",
                           day: "numeric",
                         })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setUserToDelete(user);
-                            setShowDeleteDialog(true);
-                          }}
-                          disabled={user.id === currentUser?.id}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setUserToDelete(user);
+                        setShowDeleteDialog(true);
+                      }}
+                      disabled={user.id === currentUser?.id}
+                      className="w-full"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

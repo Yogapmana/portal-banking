@@ -158,6 +158,90 @@ class CustomerService {
   }
 
   /**
+   * Get customers without call logs with pagination and filters
+   * @param {Object} params - Query parameters
+   * @param {Object} user - Authenticated user
+   * @returns {Promise<Object>} Customers with pagination and stats
+   */
+  async getPendingCustomers(params, user) {
+    const {
+      page = config.pagination.defaultPage,
+      limit = config.pagination.defaultLimit,
+      sortBy = "score",
+      sortOrder = "desc",
+      ...filters
+    } = params;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = Math.min(parseInt(limit), config.pagination.maxLimit);
+
+    // Build base where clause (without role-based filtering)
+    const { search, minScore, maxScore, job, marital, education, housing } = filters;
+    const where = {};
+
+    // Search by name, phone number, or job
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { phoneNumber: { contains: search, mode: "insensitive" } },
+        { job: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    // Score range filter
+    if (minScore !== undefined || maxScore !== undefined) {
+      const scoreCondition = {};
+      if (minScore !== undefined) scoreCondition.gte = parseFloat(minScore);
+      if (maxScore !== undefined) scoreCondition.lte = parseFloat(maxScore);
+      where.score = scoreCondition;
+    }
+
+    // Exact match filters
+    if (job) where.job = job;
+    if (marital) where.marital = marital;
+    if (education) where.education = education;
+    if (housing) where.housing = housing;
+
+    const orderBy = this._buildOrderClause(sortBy, sortOrder);
+
+    // Get customers and total count using the new method
+    const { customers, total } = await this.customerRepository.findManyWithoutCallLogs({
+      skip,
+      take,
+      where,
+      orderBy,
+      userId: user.role === "SALES" ? user.userId : null,
+    });
+
+    // Build where clause for statistics (same logic as above)
+    const statsWhere = { ...where };
+    if (user.role === "SALES") {
+      statsWhere.salesId = user.userId;
+    }
+
+    // Get statistics for pending customers
+    const stats = await this.customerRepository.getStatistics(statsWhere);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / take);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      customers,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalCustomers: total,
+        limit: take,
+        hasNext,
+        hasPrev,
+      },
+      stats,
+    };
+  }
+
+  /**
    * Get customer by ID
    * @param {number} customerId - Customer ID
    * @param {Object} user - Authenticated user

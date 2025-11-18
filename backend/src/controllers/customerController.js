@@ -20,6 +20,16 @@ class CustomerController {
   });
 
   /**
+   * Get customers without call logs with pagination and filters
+   * @route GET /api/customers/pending
+   */
+  getPendingCustomers = asyncHandler(async (req, res) => {
+    const result = await this.customerService.getPendingCustomers(req.query, req.user);
+
+    res.json(result);
+  });
+
+  /**
    * Get customer by ID
    * @route GET /api/customers/:id
    */

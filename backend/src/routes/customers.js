@@ -15,6 +15,13 @@ const customerController = container.getCustomerController();
 router.get("/", authMiddleware, customerController.getCustomers);
 
 /**
+ * @route   GET /api/customers/pending
+ * @desc    Get customers without call logs with pagination and filters
+ * @access  Private
+ */
+router.get("/pending", authMiddleware, customerController.getPendingCustomers);
+
+/**
  * @route   GET /api/customers/filters/options
  * @desc    Get filter options for dropdowns
  * @access  Private
