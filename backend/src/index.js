@@ -8,6 +8,7 @@ const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const authRoutes = require("./routes/auth");
 const customerRoutes = require("./routes/customers");
 const callLogRoutes = require("./routes/callLogs");
+const conversationGuideRoutes = require("./routes/conversationGuide");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/call-logs", callLogRoutes);
+app.use("/api/conversation-guide", conversationGuideRoutes);
 
 /**
  * Health check endpoint

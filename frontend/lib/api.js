@@ -278,6 +278,13 @@ export const api = {
       });
     },
   },
+
+  // Conversation Guide endpoints
+  conversationGuide: {
+    get: async (customerId) => {
+      return apiFetch(`/conversation-guide/${customerId}`);
+    },
+  },
 };
 
 export default api;

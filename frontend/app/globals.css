@@ -132,7 +132,7 @@
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, #034694 0%, #0575E6 100%);
+    background: linear-gradient(135deg, #034694 0%, #0575e6 100%);
   }
 
   .gradient-success {
@@ -195,7 +195,8 @@
 
   /* Enhanced shadows */
   .shadow-elevated {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   .shadow-glow {
@@ -225,8 +226,8 @@
   }
 
   .btn-enhanced::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full transition-transform duration-700;
+    content: "";
+    @apply absolute inset-0 bg-linear-to-br from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full transition-transform duration-700;
   }
 
   .btn-enhanced:hover::before {
@@ -324,7 +325,8 @@
 }
 
 @keyframes pulseGentle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import CustomerDetailDialog from "./CustomerDetailDialog";
 import BulkAssignDialog from "./BulkAssignDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -23,8 +23,7 @@ export default function CustomerTable({
   onRefresh,
 }) {
   const { user } = useAuth();
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const router = useRouter();
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
 
@@ -33,9 +32,8 @@ export default function CustomerTable({
     return `${(score * 100).toFixed(1)}%`;
   };
 
-  const handleViewDetail = (customer) => {
-    setSelectedCustomer(customer);
-    setIsDetailOpen(true);
+  const handleViewDetail = (customerId) => {
+    router.push(`/customers/${customerId}`);
   };
 
   const toggleCustomerSelection = (customerId) => {
@@ -325,7 +323,7 @@ export default function CustomerTable({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleViewDetail(customer)}
+                          onClick={() => handleViewDetail(customer.id)}
                           className="btn-enhanced group bg-linear-to-r from-[#034694]/10 to-[#0575E6]/10 hover:from-[#034694] hover:to-[#0575E6] hover:text-white hover:border-[#034694] hover:shadow-lg transition-all duration-300 font-medium"
                         >
                           <Eye className="mr-2 h-4 w-4 group-hover:animate-pulse" />
@@ -519,7 +517,7 @@ export default function CustomerTable({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleViewDetail(customer)}
+                    onClick={() => handleViewDetail(customer.id)}
                     className="w-full btn-enhanced touch-target bg-linear-to-r from-[#034694]/10 to-[#0575E6]/10 hover:from-[#034694] hover:to-[#0575E6] hover:text-white hover:border-[#034694] hover:shadow-lg transition-all duration-300 font-bold h-11"
                   >
                     <Eye className="mr-2 h-4 w-4" />
@@ -580,14 +578,6 @@ export default function CustomerTable({
           </div>
         </>
       )}
-
-      {/* Customer Detail Dialog with Call Logs */}
-      <CustomerDetailDialog
-        customer={selectedCustomer}
-        isOpen={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        onCallLogCreated={onRefresh}
-      />
 
       {/* Bulk Assign Dialog - Only for SALES_MANAGER */}
       {user?.role === "SALES_MANAGER" && (
