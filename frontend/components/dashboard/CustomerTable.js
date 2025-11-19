@@ -48,16 +48,18 @@ export default function CustomerTable({
 
   const handleRowClick = (customer, event) => {
     // Don't select if clicking on checkbox, button, or link
-    if (event.target.type === 'checkbox' ||
-        event.target.tagName === 'BUTTON' ||
-        event.target.tagName === 'A' ||
-        event.target.closest('button') ||
-        event.target.closest('a')) {
+    if (
+      event.target.type === "checkbox" ||
+      event.target.tagName === "BUTTON" ||
+      event.target.tagName === "A" ||
+      event.target.closest("button") ||
+      event.target.closest("a")
+    ) {
       return;
     }
 
     // Only allow selection for SALES_MANAGER and ADMIN roles
-    if (user?.role === 'SALES_MANAGER' || user?.role === 'ADMIN') {
+    if (user?.role === "SALES_MANAGER" || user?.role === "ADMIN") {
       toggleCustomerSelection(customer.id);
     }
   };
@@ -160,15 +162,23 @@ export default function CustomerTable({
                   {customers.map((customer) => (
                     <TableRow
                       key={customer.id}
-                      className={`hover:bg-[#034694]/5 transition-colors border-b border-border/30 cursor-pointer ${
+                      className={`hover:bg-[#034694]/5 transition-all duration-200 border-b border-border/30 cursor-pointer ${
                         selectedCustomers.includes(customer.id)
-                          ? 'bg-[#034694]/10 border-l-4 border-l-[#034694]'
-                          : ''
+                          ? "bg-[#034694]/10"
+                          : ""
                       }`}
+                      style={
+                        selectedCustomers.includes(customer.id)
+                          ? { boxShadow: "inset 4px 0 0 0 #034694" }
+                          : {}
+                      }
                       onClick={(e) => handleRowClick(customer, e)}
                     >
                       {user?.role === "SALES_MANAGER" && (
-                        <TableCell className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
+                        <TableCell
+                          className="py-4 px-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Checkbox
                             checked={selectedCustomers.includes(customer.id)}
                             onCheckedChange={() =>
@@ -268,11 +278,14 @@ export default function CustomerTable({
                           {customer.assignedTo ? (
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs shrink-0">
-                                {(customer.assignedTo.email || "").charAt(0).toUpperCase()}
+                                {(customer.assignedTo.email || "")
+                                  .charAt(0)
+                                  .toUpperCase()}
                               </div>
                               <div className="min-w-0">
                                 <p className="font-medium text-foreground text-sm truncate">
-                                  {customer.assignedTo.email?.split('@')[0] || "Unknown"}
+                                  {customer.assignedTo.email?.split("@")[0] ||
+                                    "Unknown"}
                                 </p>
                                 <p className="text-xs text-muted-foreground capitalize">
                                   {customer.assignedTo.role}
@@ -282,18 +295,33 @@ export default function CustomerTable({
                           ) : (
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs shrink-0">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                  />
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm text-muted-foreground italic">Unassigned</p>
+                                <p className="text-sm text-muted-foreground italic">
+                                  Unassigned
+                                </p>
                               </div>
                             </div>
                           )}
                         </TableCell>
                       )}
-                      <TableCell className="py-6 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <TableCell
+                        className="py-6 px-4 text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button
                           variant="outline"
                           size="sm"
@@ -318,8 +346,8 @@ export default function CustomerTable({
                 key={customer.id}
                 className={`bg-white border border-border/50 rounded-xl shadow-md hover:shadow-xl hover:scale-[1.01] hover:border-[#034694]/30 transition-all duration-300 fade-in slide-up overflow-hidden cursor-pointer ${
                   selectedCustomers.includes(customer.id)
-                    ? 'bg-[#034694]/10 border-2 border-[#034694]/30'
-                    : ''
+                    ? "bg-[#034694]/10 border-2 border-[#034694]/30"
+                    : ""
                 }`}
                 onClick={(e) => handleRowClick(customer, e)}
               >
@@ -445,11 +473,14 @@ export default function CustomerTable({
                     {customer.assignedTo ? (
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs shrink-0">
-                          {(customer.assignedTo.email || "").charAt(0).toUpperCase()}
+                          {(customer.assignedTo.email || "")
+                            .charAt(0)
+                            .toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-foreground text-sm truncate">
-                            {customer.assignedTo.email?.split('@')[0] || "Unknown"}
+                            {customer.assignedTo.email?.split("@")[0] ||
+                              "Unknown"}
                           </p>
                           <p className="text-xs text-muted-foreground capitalize">
                             {customer.assignedTo.role}
@@ -459,12 +490,24 @@ export default function CustomerTable({
                     ) : (
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs shrink-0">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
                           </svg>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground italic">Unassigned</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            Unassigned
+                          </p>
                         </div>
                       </div>
                     )}

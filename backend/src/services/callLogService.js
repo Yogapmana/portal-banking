@@ -128,8 +128,10 @@ class CallLogService {
       throw new NotFoundError("Call log tidak ditemukan");
     }
 
-    // Only the creator can update (SALES_MANAGER can update their own too)
-    if (callLog.userId !== userId) {
+    // Authorization rules:
+    // - SALES can only update their own call logs
+    // - SALES_MANAGER can update any call logs (including their team's)
+    if (userRole === "SALES" && callLog.userId !== userId) {
       throw new AuthorizationError("Anda tidak dapat mengupdate call log ini");
     }
 
