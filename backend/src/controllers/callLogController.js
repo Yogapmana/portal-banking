@@ -164,6 +164,41 @@ class CallLogController {
       data: stats,
     });
   });
+
+  /**
+   * Get my performance statistics (SALES only)
+   * @route GET /api/call-logs/my-statistics
+   */
+  getMyStatistics = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    const stats = await this.callLogService.getMyStatistics(userId, userRole);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  });
+
+  /**
+   * Get team performance statistics (SALES_MANAGER only)
+   * @route GET /api/call-logs/team-statistics
+   */
+  getTeamStatistics = asyncHandler(async (req, res) => {
+    const userRole = req.user.role;
+    const { startDate, endDate } = req.query;
+
+    const stats = await this.callLogService.getTeamStatistics(userRole, {
+      startDate,
+      endDate,
+    });
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  });
 }
 
 module.exports = CallLogController;

@@ -35,7 +35,7 @@ export default function Sidebar() {
       name: "Analytics",
       href: "/analytics",
       icon: BarChart3,
-      roles: ["ADMIN", "SALES_MANAGER"],
+      roles: ["SALES_MANAGER", "SALES"],
     },
     {
       name: "Riwayat Panggilan",

@@ -180,6 +180,40 @@ class CallLogService {
 
     return this.callLogRepository.getStatistics(filters);
   }
+
+  /**
+   * Get my performance statistics (for SALES)
+   */
+  async getMyStatistics(userId, userRole) {
+    if (userRole === "ADMIN") {
+      throw new AuthorizationError(
+        "Admin tidak dapat melihat statistik call log"
+      );
+    }
+
+    if (userRole !== "SALES") {
+      throw new AuthorizationError("Endpoint ini hanya untuk Sales");
+    }
+
+    return this.callLogRepository.getMyPerformance(userId);
+  }
+
+  /**
+   * Get team performance statistics (for SALES_MANAGER)
+   */
+  async getTeamStatistics(userRole, filters = {}) {
+    if (userRole === "ADMIN") {
+      throw new AuthorizationError(
+        "Admin tidak dapat melihat statistik call log"
+      );
+    }
+
+    if (userRole !== "SALES_MANAGER") {
+      throw new AuthorizationError("Endpoint ini hanya untuk Sales Manager");
+    }
+
+    return this.callLogRepository.getTeamPerformance(filters);
+  }
 }
 
 module.exports = CallLogService;

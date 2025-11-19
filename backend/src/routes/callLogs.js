@@ -29,6 +29,24 @@ router.get("/", authMiddleware, callLogController.getAllCallLogs);
 router.get("/statistics", authMiddleware, callLogController.getCallStatistics);
 
 /**
+ * @route   GET /api/call-logs/my-statistics
+ * @desc    Get my performance statistics (SALES only)
+ * @access  Private (SALES)
+ */
+router.get("/my-statistics", authMiddleware, callLogController.getMyStatistics);
+
+/**
+ * @route   GET /api/call-logs/team-statistics
+ * @desc    Get team performance statistics (SALES_MANAGER only)
+ * @access  Private (SALES_MANAGER)
+ */
+router.get(
+  "/team-statistics",
+  authMiddleware,
+  callLogController.getTeamStatistics
+);
+
+/**
  * @route   GET /api/call-logs/customer/:customerId
  * @desc    Get customer's call history
  * @access  Private (All authenticated users)

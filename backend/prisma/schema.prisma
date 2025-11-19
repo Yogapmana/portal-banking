@@ -31,7 +31,7 @@ enum Role {
 
 model Customer {
   id         Int @id @default(autoincrement())
-  originalId Int @unique // ID dari CSV (row number)
+  originalId Int @unique @map("originalId") // ID dari CSV (row number)
 
   // Assignment ke sales
   salesId    Int?  @map("sales_id")
@@ -39,8 +39,8 @@ model Customer {
 
   // Kolom dari nasabah_prioritas.csv 
   name        String?
-  phoneNumber String?
-  score       Float? 
+  phoneNumber String? @map("phoneNumber")
+  score       Float?
 
   // Kolom dari bank-additional-full.csv 
   age          Int
@@ -66,6 +66,8 @@ model Customer {
 
   // Relations
   callLogs CallLog[] @relation("CustomerCallLogs")
+
+  @@map("customers")
 }
 
 // Model untuk Call Log
