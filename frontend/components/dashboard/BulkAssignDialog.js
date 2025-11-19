@@ -23,8 +23,8 @@ import { Loader2, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 import { api } from "@/lib/api";
 
 export default function BulkAssignDialog({
-  selectedCustomers, // Array of customer IDs
-  customers, // Array of customer objects
+  selectedCustomers = [], // Array of customer IDs with default empty array
+  customers = [], // Array of customer objects with default empty array
   isOpen,
   onClose,
   onSuccess,
@@ -38,7 +38,7 @@ export default function BulkAssignDialog({
 
   // Get selected customer objects from IDs
   const selectedCustomerObjects =
-    customers?.filter((c) => selectedCustomers.includes(c.id)) || [];
+    customers?.filter((c) => selectedCustomers?.includes(c.id)) || [];
 
   // Fetch sales list when dialog opens
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function BulkAssignDialog({
       return;
     }
 
-    if (selectedCustomers.length === 0) {
+    if (!selectedCustomers?.length) {
       setError("Tidak ada customer yang dipilih");
       return;
     }
@@ -81,7 +81,7 @@ export default function BulkAssignDialog({
     try {
       // selectedCustomers is already an array of IDs
       const response = await api.customers.bulkAssign(
-        selectedCustomers,
+        selectedCustomers || [],
         parseInt(selectedSales)
       );
 
@@ -100,7 +100,7 @@ export default function BulkAssignDialog({
   };
 
   const handleUnassign = async () => {
-    if (selectedCustomers.length === 0) {
+    if (!selectedCustomers?.length) {
       setError("Tidak ada customer yang dipilih");
       return;
     }
@@ -133,7 +133,7 @@ export default function BulkAssignDialog({
         <DialogHeader>
           <DialogTitle>Assign Customer ke Sales</DialogTitle>
           <DialogDescription>
-            Assign {selectedCustomers.length} customer yang dipilih ke sales
+            Assign {selectedCustomers?.length || 0} customer yang dipilih ke sales
             team
           </DialogDescription>
         </DialogHeader>

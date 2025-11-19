@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,7 +135,9 @@ export default function UserManagementPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">User Management</h1>
+        <h1 className="text-3xl font-bold bg-linear-to-r from-[#034694] to-[#0575E6] bg-clip-text text-transparent">
+          User Management
+        </h1>
         <p className="text-muted-foreground">
           Manage user accounts and permissions
         </p>
@@ -157,273 +158,301 @@ export default function UserManagementPage() {
       )}
 
       {/* Create User Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Tambah Akun Baru
-          </CardTitle>
-          <CardDescription>
-            Create a new user account with specific role and permissions
-          </CardDescription>
-        </CardHeader>
+      <Card className="shadow-elevated fade-in border-0">
         <CardContent>
-          <form onSubmit={handleCreateUser} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="user@example.com"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                  disabled={formLoading}
-                />
+          <div className="bg-linear-to-r -mb-4 -mt-6 p-6 -ml-5  rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <div className="avatar-gradient-chelsea w-8 h-8 rounded-lg flex items-center justify-center">
+                <UserPlus className="h-4 w-4 text-white" />
+              </div>
+              Tambah Akun Baru
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Create a new user account with specific role and permissions
+            </CardDescription>
+          </div>
+          <div className="mt-6">
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    required
+                    disabled={formLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="e.g., Admin123!"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    required
+                    minLength={8}
+                    disabled={formLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Min 8 chars, must include: uppercase, lowercase, number &
+                    special char (@$!%*?&)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, role: value })
+                    }
+                    disabled={formLoading}
+                  >
+                    <SelectTrigger id="role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="SALES_MANAGER">
+                        Sales Manager
+                      </SelectItem>
+                      <SelectItem value="SALES">Sales</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="e.g., Admin123!"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  required
-                  minLength={8}
-                  disabled={formLoading}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Min 8 chars, must include: uppercase, lowercase, number &
-                  special char (@$!%*?&)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, role: value })
-                  }
-                  disabled={formLoading}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                    <SelectItem value="SALES_MANAGER">Sales Manager</SelectItem>
-                    <SelectItem value="SALES">Sales</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <Button type="submit" disabled={formLoading}>
-              {formLoading ? (
-                <span className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                  Creating...
-                </span>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Create User
-                </>
-              )}
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                disabled={formLoading}
+                className="bg-linear-to-r from-[#034694] to-[#0575E6] hover:from-[#034694]/90 hover:to-[#0575E6]/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                {formLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Creating...
+                  </span>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Create User
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
         </CardContent>
       </Card>
 
       {/* Users List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Daftar Akun
-          </CardTitle>
-          <CardDescription>All registered users in the system</CardDescription>
-        </CardHeader>
+      <Card className="shadow-elevated fade-in border-0">
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          ) : usersError ? (
-            <div className="py-8 text-center text-red-600">
-              Error loading users: {usersError.message}
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="font-semibold">User</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Role</TableHead>
-                        <TableHead className="font-semibold">
-                          Created At
-                        </TableHead>
-                        <TableHead className="font-semibold text-right">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users?.map((user) => (
-                        <TableRow
-                          key={user.id}
-                          className="hover:bg-muted/30 transition-colors"
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
-                                {user.email.charAt(0).toUpperCase()}
+          <div className="bg-linear-to-r -mb-4 -mt-6 p-6 -ml-5 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <div className="avatar-gradient-chelsea w-8 h-8 rounded-lg flex items-center justify-center">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              Daftar Akun
+            </CardTitle>
+            <CardDescription className="mt-1">
+              All registered users in the system
+            </CardDescription>
+          </div>
+          <div className="mt-6">
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : usersError ? (
+              <div className="py-8 text-center text-red-600">
+                Error loading users: {usersError.message}
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-linear-to-r from-[#034694]/5 to-[#0575E6]/5 border-b border-border/50">
+                          <TableHead className="font-bold text-foreground py-4">
+                            User
+                          </TableHead>
+                          <TableHead className="font-bold text-foreground py-4">
+                            Email
+                          </TableHead>
+                          <TableHead className="font-bold text-foreground py-4">
+                            Role
+                          </TableHead>
+                          <TableHead className="font-bold text-foreground py-4">
+                            Created At
+                          </TableHead>
+                          <TableHead className="font-bold text-foreground text-right py-4">
+                            Actions
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users?.map((user) => (
+                          <TableRow
+                            key={user.id}
+                            className="hover:bg-[#034694]/5 transition-colors border-b border-border/30"
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className="avatar-gradient-chelsea w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-lg">
+                                  {user.email.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-foreground">
+                                    User #{user.id}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {user.role}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="min-w-0">
-                                <p className="font-medium text-foreground">
-                                  User #{user.id}
+                            </TableCell>
+                            <TableCell>
+                              <p className="text-sm text-foreground">
+                                {user.email}
+                              </p>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={getRoleBadgeVariant(user.role)}
+                                className="font-medium"
+                              >
+                                {user.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-foreground">
+                                  {new Date(user.createdAt).toLocaleDateString(
+                                    "id-ID",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    }
+                                  )}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {user.role}
+                                  {new Date(user.createdAt).toLocaleTimeString(
+                                    "id-ID",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
                                 </p>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <p className="text-sm text-foreground">
-                              {user.email}
-                            </p>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={getRoleBadgeVariant(user.role)}
-                              className="font-medium"
-                            >
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  setUserToDelete(user);
+                                  setShowDeleteDialog(true);
+                                }}
+                                disabled={user.id === currentUser?.id}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {users?.map((user) => (
+                    <div
+                      key={user.id}
+                      className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
+                    >
+                      {/* Header with Avatar */}
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                          {user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground">
+                            User #{user.id}
+                          </h3>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {user.email}
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant={getRoleBadgeVariant(user.role)}>
                               {user.role}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-foreground">
-                                {new Date(user.createdAt).toLocaleDateString(
-                                  "id-ID",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(user.createdAt).toLocaleTimeString(
-                                  "id-ID",
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setUserToDelete(user);
-                                setShowDeleteDialog(true);
-                              }}
-                              disabled={user.id === currentUser?.id}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="md:hidden space-y-3">
-                {users?.map((user) => (
-                  <div
-                    key={user.id}
-                    className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-all"
-                  >
-                    {/* Header with Avatar */}
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
-                        {user.email.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">
-                          User #{user.id}
-                        </h3>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {user.email}
-                        </p>
-                        <div className="mt-2">
-                          <Badge variant={getRoleBadgeVariant(user.role)}>
-                            {user.role}
-                          </Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Created At */}
-                    <div className="mb-3 pb-3 border-t pt-3">
-                      <span className="text-muted-foreground text-xs block mb-1">
-                        Created At
-                      </span>
-                      <p className="text-sm text-foreground">
-                        {new Date(user.createdAt).toLocaleDateString("id-ID", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleTimeString("id-ID", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
+                      {/* Created At */}
+                      <div className="mb-3 pb-3 border-t pt-3">
+                        <span className="text-muted-foreground text-xs block mb-1">
+                          Created At
+                        </span>
+                        <p className="text-sm text-foreground">
+                          {new Date(user.createdAt).toLocaleDateString(
+                            "id-ID",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(user.createdAt).toLocaleTimeString(
+                            "id-ID",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </p>
+                      </div>
 
-                    {/* Action Button */}
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setUserToDelete(user);
-                        setShowDeleteDialog(true);
-                      }}
-                      disabled={user.id === currentUser?.id}
-                      className="w-full"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete User
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+                      {/* Action Button */}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setUserToDelete(user);
+                          setShowDeleteDialog(true);
+                        }}
+                        disabled={user.id === currentUser?.id}
+                        className="w-full"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete User
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </CardContent>
       </Card>
 

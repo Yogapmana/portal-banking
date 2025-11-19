@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Users, Award } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -62,6 +63,21 @@ export default function CallHistoryPage() {
     fetchStatistics();
   }, [page, filters]);
 
+  // Calculate statistics from callLogs if API doesn't return proper data
+  useEffect(() => {
+    if (callLogs.length > 0 && (!statistics || statistics.totalCalls === 0)) {
+      const calculatedStats = {
+        totalCalls: callLogs.length,
+        byStatus: callLogs.reduce((acc, log) => {
+          acc[log.status] = (acc[log.status] || 0) + 1;
+          return acc;
+        }, {})
+      };
+      console.log("Calculated stats from callLogs:", calculatedStats);
+      setStatistics(calculatedStats);
+    }
+  }, [callLogs, statistics]);
+
   const fetchCallLogs = async () => {
     setLoading(true);
     setError("");
@@ -94,17 +110,22 @@ export default function CallHistoryPage() {
 
   const fetchStatistics = async () => {
     try {
-      const params = {
-        ...(filters.status &&
-          filters.status !== "ALL" && { status: filters.status }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
-      };
-
-      const response = await api.callLogs.getStatistics(params);
-      setStatistics(response.data || null);
+      const response = await api.callLogs.getStatistics();
+      console.log("Statistics response:", response); // Debug log
+      setStatistics(response.data || response || null);
     } catch (err) {
       console.error("Error fetching statistics:", err);
+      // If API fails, calculate statistics from current callLogs
+      if (callLogs.length > 0) {
+        const calculatedStats = {
+          totalCalls: callLogs.length,
+          byStatus: callLogs.reduce((acc, log) => {
+            acc[log.status] = (acc[log.status] || 0) + 1;
+            return acc;
+          }, {})
+        };
+        setStatistics(calculatedStats);
+      }
     }
   };
 
@@ -148,8 +169,8 @@ export default function CallHistoryPage() {
     try {
       await api.callLogs.update(callLogId, editForm);
 
-      // Refresh data
-      await fetchCallLogs();
+      // Refresh both call logs and statistics
+      await Promise.all([fetchCallLogs(), fetchStatistics()]);
 
       // Reset edit mode
       setEditingId(null);
@@ -196,74 +217,87 @@ export default function CallHistoryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold bg-linear-to-r from-[#034694] to-[#0575E6] bg-clip-text text-transparent">
             Riwayat Panggilan
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Daftar semua panggilan yang telah dilakukan
           </p>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      {statistics && (
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Panggilan
-              </CardTitle>
-              <Phone className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statistics.total || 0}</div>
-            </CardContent>
-          </Card>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="metric-card card-hover fade-in border-0 shadow-md hover:shadow-xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Total Panggilan
+            </CardTitle>
+            <div className="avatar-gradient-chelsea w-8 h-8 rounded-lg flex items-center justify-center">
+              <Phone className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums">
+              {statistics?.totalCalls?.toLocaleString() || "0"}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total call records
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tertarik</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statistics.byStatus?.INTERESTED || 0}
-              </div>
-            </CardContent>
-          </Card>
+        <Card
+          className="metric-card card-hover fade-in border-0 shadow-md hover:shadow-xl"
+          style={{ animationDelay: "0.1s" }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Tertarik
+            </CardTitle>
+            <div className="avatar-gradient-chelsea w-8 h-8 rounded-lg flex items-center justify-center">
+              <Users className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums">
+              {statistics?.byStatus?.INTERESTED?.toLocaleString() || "0"}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Interested customers
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Callback</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statistics.byStatus?.CALLBACK || 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Selesai</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statistics.byStatus?.COMPLETED || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <Card
+          className="metric-card card-hover fade-in border-0 shadow-md hover:shadow-xl sm:col-span-2 lg:col-span-1"
+          style={{ animationDelay: "0.2s" }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Selesai
+            </CardTitle>
+            <div className="avatar-gradient w-8 h-8 rounded-lg flex items-center justify-center">
+              <Award className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums">
+              {statistics?.byStatus?.COMPLETED?.toLocaleString() || "0"}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Completed transactions
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md fade-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -297,14 +331,12 @@ export default function CallHistoryPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Semua Status</SelectItem>
-                  <SelectItem value="INTERESTED">✅ Tertarik</SelectItem>
-                  <SelectItem value="NOT_INTERESTED">
-                    ❌ Tidak Tertarik
-                  </SelectItem>
-                  <SelectItem value="NO_ANSWER">📵 Tidak Angkat</SelectItem>
-                  <SelectItem value="WRONG_NUMBER">⚠️ Nomor Salah</SelectItem>
-                  <SelectItem value="CALLBACK">🔄 Callback</SelectItem>
-                  <SelectItem value="COMPLETED">🎉 Selesai</SelectItem>
+                  <SelectItem value="INTERESTED">Tertarik</SelectItem>
+                  <SelectItem value="NOT_INTERESTED">Tidak Tertarik</SelectItem>
+                  <SelectItem value="NO_ANSWER">Tidak Angkat</SelectItem>
+                  <SelectItem value="WRONG_NUMBER">Nomor Salah</SelectItem>
+                  <SelectItem value="CALLBACK">Callback</SelectItem>
+                  <SelectItem value="COMPLETED">Selesai</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -407,7 +439,7 @@ export default function CallHistoryPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
                                 {(log.customer?.name || "?")
                                   .charAt(0)
                                   .toUpperCase()}
@@ -542,7 +574,7 @@ export default function CallHistoryPage() {
                   >
                     {/* Header with Avatar and Name */}
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold shrink-0">
                         {(log.customer?.name || "?").charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -580,24 +612,20 @@ export default function CallHistoryPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="INTERESTED">
-                              ✅ Tertarik
-                            </SelectItem>
+                            <SelectItem value="INTERESTED">Tertarik</SelectItem>
                             <SelectItem value="NOT_INTERESTED">
-                              ❌ Tidak Tertarik
+                              Tidak Tertarik
                             </SelectItem>
                             <SelectItem value="NO_ANSWER">
-                              📵 Tidak Angkat
+                              Tidak Angkat
                             </SelectItem>
                             <SelectItem value="WRONG_NUMBER">
-                              ⚠️ Nomor Salah
+                              Nomor Salah
                             </SelectItem>
                             <SelectItem value="CALLBACK">
-                              🔄 Minta Dihubungi Lagi
+                              Minta Dihubungi Lagi
                             </SelectItem>
-                            <SelectItem value="COMPLETED">
-                              🎉 Selesai
-                            </SelectItem>
+                            <SelectItem value="COMPLETED">Selesai</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
