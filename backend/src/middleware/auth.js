@@ -4,7 +4,9 @@ const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({ message: "Access denied. No token provided." });
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
   }
 
   try {
@@ -18,7 +20,7 @@ const authMiddleware = (req, res, next) => {
   } catch (error) {
     if (error.message.includes("JWT_SECRET")) {
       return res.status(500).json({
-        message: "Server configuration error"
+        message: "Server configuration error",
       });
     }
     res.status(401).json({ message: "Invalid token." });
@@ -34,7 +36,7 @@ const requireRole = (allowedRoles) => {
 
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
-        message: "Access denied. Insufficient permissions."
+        message: "Access denied. Insufficient permissions.",
       });
     }
 
@@ -48,9 +50,13 @@ const requireAdmin = requireRole(["ADMIN"]);
 // Helper middleware untuk admin dan manager
 const requireAdminOrManager = requireRole(["ADMIN", "SALES_MANAGER"]);
 
+// Helper middleware untuk sales manager only
+const requireSalesManager = requireRole(["SALES_MANAGER"]);
+
 module.exports = {
   authMiddleware,
   requireRole,
   requireAdmin,
-  requireAdminOrManager
+  requireAdminOrManager,
+  requireSalesManager,
 };

@@ -39,15 +39,13 @@ class CustomerService {
 
     // Role-based filtering
     if (user.role === "SALES") {
-      const salesConditions = [
-        { salesId: null }, // Unassigned customers
-        { salesId: user.userId }, // Assigned to this sales
-      ];
+      // SALES only see customers assigned to them
+      const salesCondition = { salesId: user.userId };
 
       if (searchConditions.length > 0) {
-        where.AND = [{ OR: salesConditions }, { OR: searchConditions }];
+        where.AND = [salesCondition, { OR: searchConditions }];
       } else {
-        where.OR = salesConditions;
+        where.salesId = user.userId;
       }
     } else {
       // Admin and Sales Manager can see all customers
@@ -160,6 +158,90 @@ class CustomerService {
   }
 
   /**
+   * Get customers without call logs with pagination and filters
+   * @param {Object} params - Query parameters
+   * @param {Object} user - Authenticated user
+   * @returns {Promise<Object>} Customers with pagination and stats
+   */
+  async getPendingCustomers(params, user) {
+    const {
+      page = config.pagination.defaultPage,
+      limit = config.pagination.defaultLimit,
+      sortBy = "score",
+      sortOrder = "desc",
+      ...filters
+    } = params;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = Math.min(parseInt(limit), config.pagination.maxLimit);
+
+    // Build base where clause (without role-based filtering)
+    const { search, minScore, maxScore, job, marital, education, housing } = filters;
+    const where = {};
+
+    // Search by name, phone number, or job
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { phoneNumber: { contains: search, mode: "insensitive" } },
+        { job: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    // Score range filter
+    if (minScore !== undefined || maxScore !== undefined) {
+      const scoreCondition = {};
+      if (minScore !== undefined) scoreCondition.gte = parseFloat(minScore);
+      if (maxScore !== undefined) scoreCondition.lte = parseFloat(maxScore);
+      where.score = scoreCondition;
+    }
+
+    // Exact match filters
+    if (job) where.job = job;
+    if (marital) where.marital = marital;
+    if (education) where.education = education;
+    if (housing) where.housing = housing;
+
+    const orderBy = this._buildOrderClause(sortBy, sortOrder);
+
+    // Get customers and total count using the new method
+    const { customers, total } = await this.customerRepository.findManyWithoutCallLogs({
+      skip,
+      take,
+      where,
+      orderBy,
+      userId: user.role === "SALES" ? user.userId : null,
+    });
+
+    // Build where clause for statistics (same logic as above)
+    const statsWhere = { ...where };
+    if (user.role === "SALES") {
+      statsWhere.salesId = user.userId;
+    }
+
+    // Get statistics for pending customers
+    const stats = await this.customerRepository.getStatistics(statsWhere);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / take);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      customers,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalCustomers: total,
+        limit: take,
+        hasNext,
+        hasPrev,
+      },
+      stats,
+    };
+  }
+
+  /**
    * Get customer by ID
    * @param {number} customerId - Customer ID
    * @param {Object} user - Authenticated user
@@ -249,6 +331,69 @@ class CustomerService {
 
     // Unassign customer
     return this.customerRepository.unassignFromSales(customerId);
+  }
+
+  /**
+   * Bulk assign customers to sales
+   * @param {Array<number>} customerIds - Array of customer IDs
+   * @param {number} salesId - Sales user ID
+   * @param {Object} user - Authenticated user (must be SALES_MANAGER)
+   * @returns {Promise<Object>} Result with count
+   */
+  async bulkAssignCustomers(customerIds, salesId, user) {
+    // Only SALES_MANAGER can bulk assign
+    if (user.role !== "SALES_MANAGER") {
+      throw new AuthorizationError(
+        "Hanya Sales Manager yang dapat melakukan bulk assign"
+      );
+    }
+
+    // Verify sales user exists and has SALES role
+    const salesUser = await this.userRepository.findById(salesId);
+    if (!salesUser) {
+      throw new NotFoundError("Sales user tidak ditemukan");
+    }
+
+    if (salesUser.role !== "SALES") {
+      throw new ValidationError("User yang dipilih bukan Sales");
+    }
+
+    // Bulk update
+    const count = await this.customerRepository.bulkUpdateSalesId(
+      customerIds,
+      salesId
+    );
+
+    return {
+      count,
+      salesId,
+      salesEmail: salesUser.email,
+    };
+  }
+
+  /**
+   * Bulk unassign customers from sales
+   * @param {Array<number>} customerIds - Array of customer IDs
+   * @param {Object} user - Authenticated user (must be SALES_MANAGER)
+   * @returns {Promise<Object>} Result with count
+   */
+  async bulkUnassignCustomers(customerIds, user) {
+    // Only SALES_MANAGER can bulk unassign
+    if (user.role !== "SALES_MANAGER") {
+      throw new AuthorizationError(
+        "Hanya Sales Manager yang dapat melakukan bulk unassign"
+      );
+    }
+
+    // Bulk update to null
+    const count = await this.customerRepository.bulkUpdateSalesId(
+      customerIds,
+      null
+    );
+
+    return {
+      count,
+    };
   }
 
   /**

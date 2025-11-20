@@ -65,8 +65,8 @@ export default function CustomerFilters({ filters, onFilterChange }) {
   };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <Card className="shadow-elevated fade-in border-0">
+      <CardContent className="pt-6 px-4 md:px-6">
         <div className="space-y-4">
           {/* Search Bar - Always Visible */}
           <div className="flex gap-2">
@@ -78,26 +78,32 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                   value={localFilters.search}
                   onChange={(e) => handleInputChange("search", e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="pl-10"
+                  className="pl-10 h-11 border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300"
                 />
               </div>
             </div>
             <Button
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
+              className="bg-linear-to-r from-[#034694]/10 to-[#0575E6]/10 hover:from-[#034694] hover:to-[#0575E6] hover:text-white hover:border-[#034694] transition-all duration-300"
             >
               <Filter className="mr-2 h-4 w-4" />
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
-            <Button onClick={applyFilters}>Apply</Button>
+            <Button
+              onClick={applyFilters}
+              className="bg-linear-to-r from-[#034694] to-[#0575E6] hover:from-[#034694]/90 hover:to-[#0575E6]/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+            >
+              Apply
+            </Button>
           </div>
 
           {/* Advanced Filters - Collapsible */}
           {showFilters && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 slide-up space-y-4">
               {/* Score Range */}
               <div className="space-y-2">
-                <Label>Min Score</Label>
+                <Label className="font-semibold text-foreground">Min Score</Label>
                 <Input
                   type="number"
                   min="0"
@@ -109,11 +115,12 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                     handleInputChange("minScore", e.target.value)
                   }
                   onKeyPress={handleKeyPress}
+                  className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Max Score</Label>
+                <Label className="font-semibold text-foreground">Max Score</Label>
                 <Input
                   type="number"
                   min="0"
@@ -125,19 +132,20 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                     handleInputChange("maxScore", e.target.value)
                   }
                   onKeyPress={handleKeyPress}
+                  className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300"
                 />
               </div>
 
               {/* Job Filter */}
               <div className="space-y-2">
-                <Label>Job</Label>
+                <Label className="font-semibold text-foreground">Job</Label>
                 <Select
                   value={localFilters.job || "all"}
                   onValueChange={(value) =>
                     handleInputChange("job", value === "all" ? "" : value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue placeholder="All Jobs" />
                   </SelectTrigger>
                   <SelectContent>
@@ -153,14 +161,14 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
               {/* Marital Status Filter */}
               <div className="space-y-2">
-                <Label>Marital Status</Label>
+                <Label className="font-semibold text-foreground">Marital Status</Label>
                 <Select
                   value={localFilters.marital || "all"}
                   onValueChange={(value) =>
                     handleInputChange("marital", value === "all" ? "" : value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,14 +184,14 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
               {/* Education Filter */}
               <div className="space-y-2">
-                <Label>Education</Label>
+                <Label className="font-semibold text-foreground">Education</Label>
                 <Select
                   value={localFilters.education || "all"}
                   onValueChange={(value) =>
                     handleInputChange("education", value === "all" ? "" : value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue placeholder="All Education" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,14 +207,14 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
               {/* Housing Filter */}
               <div className="space-y-2">
-                <Label>Housing</Label>
+                <Label className="font-semibold text-foreground">Housing</Label>
                 <Select
                   value={localFilters.housing || "all"}
                   onValueChange={(value) =>
                     handleInputChange("housing", value === "all" ? "" : value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,12 +230,12 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
               {/* Sort By */}
               <div className="space-y-2">
-                <Label>Sort By</Label>
+                <Label className="font-semibold text-foreground">Sort By</Label>
                 <Select
                   value={localFilters.sortBy}
                   onValueChange={(value) => handleInputChange("sortBy", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -239,14 +247,14 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
               {/* Sort Order */}
               <div className="space-y-2">
-                <Label>Sort Order</Label>
+                <Label className="font-semibold text-foreground">Sort Order</Label>
                 <Select
                   value={localFilters.sortOrder}
                   onValueChange={(value) =>
                     handleInputChange("sortOrder", value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#034694]/20 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all duration-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,12 +268,21 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
           {/* Filter Actions */}
           {showFilters && (
-            <div className="flex justify-end gap-2">
-              <Button onClick={resetFilters} variant="outline" size="sm">
+            <div className="flex justify-end gap-2 pt-4 border-t border-border/30 slide-up">
+              <Button
+                onClick={resetFilters}
+                variant="outline"
+                size="sm"
+                className="bg-linear-to-r from-[#034694]/10 to-[#0575E6]/10 hover:from-[#034694] hover:to-[#0575E6] hover:text-white hover:border-[#034694] transition-all duration-300"
+              >
                 <X className="mr-2 h-4 w-4" />
                 Reset Filters
               </Button>
-              <Button onClick={applyFilters} size="sm">
+              <Button
+                onClick={applyFilters}
+                size="sm"
+                className="bg-linear-to-r from-[#034694] to-[#0575E6] hover:from-[#034694]/90 hover:to-[#0575E6]/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+              >
                 Apply Filters
               </Button>
             </div>

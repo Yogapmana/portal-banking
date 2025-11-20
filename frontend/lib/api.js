@@ -36,10 +36,14 @@ async function apiFetch(endpoint, options = {}) {
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`API Request: ${config.method || "GET"} ${url}`);
+
+    const response = await fetch(url, config);
     const data = await response.json();
 
     if (!response.ok) {
+      console.error(`API Error (${response.status}):`, data);
       throw {
         status: response.status,
         message: data.message || "Something went wrong",
@@ -49,6 +53,7 @@ async function apiFetch(endpoint, options = {}) {
 
     return data;
   } catch (error) {
+    console.error("API Fetch Error:", error);
     if (error.status === 401) {
       // Token expired or invalid
       if (typeof window !== "undefined") {
@@ -94,6 +99,10 @@ export const api = {
 
     getUsers: async () => {
       return apiFetch("/auth/users");
+    },
+
+    getSalesList: async () => {
+      return apiFetch("/auth/sales-list");
     },
   },
 
@@ -149,8 +158,115 @@ export const api = {
       });
     },
 
+    bulkAssign: async (customerIds, salesId) => {
+      return apiFetch("/customers/bulk-assign", {
+        method: "POST",
+        body: JSON.stringify({ customerIds, salesId }),
+      });
+    },
+
+    bulkUnassign: async (customerIds) => {
+      return apiFetch("/customers/bulk-unassign", {
+        method: "POST",
+        body: JSON.stringify({ customerIds }),
+      });
+    },
+
     getFilterOptions: async () => {
       return apiFetch("/customers/filters/options");
+    },
+
+    getPending: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(
+        `/customers/pending${queryString ? `?${queryString}` : ""}`
+      );
+    },
+  },
+
+  // Call logs endpoints
+  callLogs: {
+    create: async (customerId, callLogData) => {
+      return apiFetch("/call-logs", {
+        method: "POST",
+        body: JSON.stringify({ customerId, ...callLogData }),
+      });
+    },
+
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(`/call-logs${queryString ? `?${queryString}` : ""}`);
+    },
+
+    getById: async (id) => {
+      return apiFetch(`/call-logs/${id}`);
+    },
+
+    getByCustomer: async (customerId) => {
+      return apiFetch(`/call-logs/customer/${customerId}`);
+    },
+
+    update: async (id, callLogData) => {
+      return apiFetch(`/call-logs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(callLogData),
+      });
+    },
+
+    delete: async (id) => {
+      return apiFetch(`/call-logs/${id}`, {
+        method: "DELETE",
+      });
+    },
+
+    getStatistics: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(
+        `/call-logs/statistics${queryString ? `?${queryString}` : ""}`
+      );
+    },
+
+    getMyStatistics: async () => {
+      return apiFetch("/call-logs/my-statistics");
+    },
+
+    getTeamStatistics: async (params = {}) => {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
+      ).toString();
+
+      return apiFetch(
+        `/call-logs/team-statistics${queryString ? `?${queryString}` : ""}`
+      );
     },
   },
 
@@ -160,6 +276,13 @@ export const api = {
       return apiFetch(`/auth/users/${id}`, {
         method: "DELETE",
       });
+    },
+  },
+
+  // Conversation Guide endpoints
+  conversationGuide: {
+    get: async (customerId) => {
+      return apiFetch(`/conversation-guide/${customerId}`);
     },
   },
 };

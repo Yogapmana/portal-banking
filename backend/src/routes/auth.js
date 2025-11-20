@@ -1,7 +1,11 @@
 const express = require("express");
 const container = require("../container");
 const { validate } = require("../middleware/validation");
-const { authMiddleware, requireAdmin } = require("../middleware/auth");
+const {
+  authMiddleware,
+  requireAdmin,
+  requireSalesManager,
+} = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -91,5 +95,17 @@ router.delete(
  * @access  Private
  */
 router.post("/change-password", authMiddleware, authController.changePassword);
+
+/**
+ * @route   GET /api/auth/sales-list
+ * @desc    Get list of SALES users
+ * @access  Private (SALES_MANAGER only)
+ */
+router.get(
+  "/sales-list",
+  authMiddleware,
+  requireSalesManager,
+  authController.getSalesList
+);
 
 module.exports = router;

@@ -20,6 +20,16 @@ class CustomerController {
   });
 
   /**
+   * Get customers without call logs with pagination and filters
+   * @route GET /api/customers/pending
+   */
+  getPendingCustomers = asyncHandler(async (req, res) => {
+    const result = await this.customerService.getPendingCustomers(req.query, req.user);
+
+    res.json(result);
+  });
+
+  /**
    * Get customer by ID
    * @route GET /api/customers/:id
    */
@@ -81,6 +91,45 @@ class CustomerController {
       success: true,
       message: "Customer berhasil di-unassign",
       data: customer,
+    });
+  });
+
+  /**
+   * Bulk assign customers to sales
+   * @route POST /api/customers/bulk-assign
+   */
+  bulkAssignCustomers = asyncHandler(async (req, res) => {
+    const { customerIds, salesId } = req.body;
+
+    const result = await this.customerService.bulkAssignCustomers(
+      customerIds,
+      parseInt(salesId),
+      req.user
+    );
+
+    res.json({
+      success: true,
+      message: `${result.count} customer berhasil di-assign`,
+      data: result,
+    });
+  });
+
+  /**
+   * Bulk unassign customers from sales
+   * @route POST /api/customers/bulk-unassign
+   */
+  bulkUnassignCustomers = asyncHandler(async (req, res) => {
+    const { customerIds } = req.body;
+
+    const result = await this.customerService.bulkUnassignCustomers(
+      customerIds,
+      req.user
+    );
+
+    res.json({
+      success: true,
+      message: `${result.count} customer berhasil di-unassign`,
+      data: result,
     });
   });
 

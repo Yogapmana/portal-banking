@@ -15,6 +15,13 @@ const customerController = container.getCustomerController();
 router.get("/", authMiddleware, customerController.getCustomers);
 
 /**
+ * @route   GET /api/customers/pending
+ * @desc    Get customers without call logs with pagination and filters
+ * @access  Private
+ */
+router.get("/pending", authMiddleware, customerController.getPendingCustomers);
+
+/**
  * @route   GET /api/customers/filters/options
  * @desc    Get filter options for dropdowns
  * @access  Private
@@ -23,6 +30,30 @@ router.get(
   "/filters/options",
   authMiddleware,
   customerController.getFilterOptions
+);
+
+/**
+ * @route   POST /api/customers/bulk-assign
+ * @desc    Bulk assign customers to sales
+ * @access  Private (Manager only)
+ */
+router.post(
+  "/bulk-assign",
+  authMiddleware,
+  requireAdminOrManager,
+  customerController.bulkAssignCustomers
+);
+
+/**
+ * @route   POST /api/customers/bulk-unassign
+ * @desc    Bulk unassign customers from sales
+ * @access  Private (Manager only)
+ */
+router.post(
+  "/bulk-unassign",
+  authMiddleware,
+  requireAdminOrManager,
+  customerController.bulkUnassignCustomers
 );
 
 /**
