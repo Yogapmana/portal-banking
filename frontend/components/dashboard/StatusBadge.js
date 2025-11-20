@@ -49,7 +49,10 @@ export default function StatusBadge({ status, className = "" }) {
   const config = getStatusConfig(status);
 
   return (
-    <Badge variant={config.variant} className={`${config.className} ${className}`}>
+    <Badge
+      variant={config.variant}
+      className={`${config.className} ${className}`}
+    >
       {config.label}
     </Badge>
   );

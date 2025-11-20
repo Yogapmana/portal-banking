@@ -15,7 +15,9 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import StatisticsCard from "@/components/dashboard/StatisticsCard";
-import StatusBadge, { getStatusColor } from "@/components/dashboard/StatusBadge";
+import StatusBadge, {
+  getStatusColor,
+} from "@/components/dashboard/StatusBadge";
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -39,7 +41,7 @@ export default function AnalyticsPage() {
         user?.role === "SALES"
           ? await api.callLogs.getMyStatistics()
           : await api.callLogs.getTeamStatistics();
-      
+
       console.log("Analytics Response:", response);
       console.log("Top Performers:", response.data?.topPerformers);
       setStats(response.data);
@@ -265,15 +267,21 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           {(() => {
-            console.log("Rendering leaderboard, topPerformers:", stats.topPerformers);
-            const performers = stats.topPerformers || stats.salesPerformance || [];
-            
+            console.log(
+              "Rendering leaderboard, topPerformers:",
+              stats.topPerformers
+            );
+            const performers =
+              stats.topPerformers || stats.salesPerformance || [];
+
             if (!performers || performers.length === 0) {
               return (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>Belum ada data performa sales</p>
-                  <p className="text-sm mt-1">Data akan muncul setelah ada aktivitas panggilan</p>
+                  <p className="text-sm mt-1">
+                    Data akan muncul setelah ada aktivitas panggilan
+                  </p>
                 </div>
               );
             }
@@ -287,43 +295,52 @@ export default function AnalyticsPage() {
                   >
                     <div className="flex items-center gap-4 flex-1">
                       {/* Rank Badge */}
-                      <div 
+                      <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md ${
-                          index === 0 ? 'bg-linear-to-br from-yellow-400 to-yellow-600' :
-                          index === 1 ? 'bg-linear-to-br from-gray-300 to-gray-500' :
-                          index === 2 ? 'bg-linear-to-br from-orange-400 to-orange-600' :
-                          'bg-linear-to-br from-[#034694] to-[#0575E6]'
+                          index === 0
+                            ? "bg-linear-to-br from-yellow-400 to-yellow-600"
+                            : index === 1
+                            ? "bg-linear-to-br from-gray-300 to-gray-500"
+                            : index === 2
+                            ? "bg-linear-to-br from-orange-400 to-orange-600"
+                            : "bg-linear-to-br from-[#034694] to-[#0575E6]"
                         }`}
                       >
                         #{index + 1}
                       </div>
-                      
+
                       {/* Sales Info */}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-base truncate">
-                          {performer.salesEmail || performer.email || 'Unknown'}
+                          {performer.salesEmail || performer.email || "Unknown"}
                         </p>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Phone className="h-3.5 w-3.5" />
                             {performer.totalCalls || 0} panggilan
                           </span>
-                          {(performer.interestedCount !== undefined || performer.interested !== undefined) && (
+                          {(performer.interestedCount !== undefined ||
+                            performer.interested !== undefined) && (
                             <span className="flex items-center gap-1">
                               <TrendingUp className="h-3.5 w-3.5 text-green-600" />
-                              {performer.interestedCount || performer.interested || 0} tertarik
+                              {performer.interestedCount ||
+                                performer.interested ||
+                                0}{" "}
+                              tertarik
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Success Rate Badge */}
-                    <Badge 
+                    <Badge
                       className={`text-sm font-semibold px-3 py-1 ${
-                        parseFloat(performer.successRate || 0) >= 50 ? 'bg-green-100 text-green-700' :
-                        parseFloat(performer.successRate || 0) >= 30 ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                        parseFloat(performer.successRate || 0) >= 50
+                          ? "bg-green-100 text-green-700"
+                          : parseFloat(performer.successRate || 0) >= 30
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-700"
                       }`}
                     >
                       {performer.successRate || 0}% success

@@ -31,7 +31,7 @@ export default function CallLogForm({ customerId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!status) {
       setError("Silakan pilih status panggilan");
       return;

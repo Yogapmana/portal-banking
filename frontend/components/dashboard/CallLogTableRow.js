@@ -64,7 +64,7 @@ export default function CallLogTableRow({ log, onUpdate }) {
   return (
     <TableRow className="hover:bg-muted/50">
       <TableCell>{formatDate(log.callDate)}</TableCell>
-      
+
       <TableCell>
         <div className="flex items-center gap-3">
           <div className="avatar-gradient-chelsea w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
@@ -131,9 +131,7 @@ export default function CallLogTableRow({ log, onUpdate }) {
       </TableCell>
 
       <TableCell>
-        <p className="text-sm text-foreground">
-          {log.user?.email || "N/A"}
-        </p>
+        <p className="text-sm text-foreground">{log.user?.email || "N/A"}</p>
       </TableCell>
 
       <TableCell className="text-right">
