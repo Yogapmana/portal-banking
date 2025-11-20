@@ -74,8 +74,8 @@ export default function CustomerDetailPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Skeleton className="h-10 w-32 mb-6" />
+      <div className="space-y-6">
+        <Skeleton className="h-16 w-64" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Skeleton className="h-64 w-full" />
@@ -91,11 +91,17 @@ export default function CustomerDetailPage() {
 
   if (error || !customer) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Kembali
-        </Button>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Customer Detail</h1>
+        </div>
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-12">
@@ -129,16 +135,24 @@ export default function CustomerDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl fade-in">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-6 hover:bg-[#034694]/10"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Kembali
-      </Button>
+    <div className="space-y-6 fade-in">
+      {/* Page Header */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="hover:bg-gray-100"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Customer Detail</h1>
+          <p className="text-sm text-muted-foreground">
+            Informasi lengkap dan riwayat panggilan
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content - Left Side */}

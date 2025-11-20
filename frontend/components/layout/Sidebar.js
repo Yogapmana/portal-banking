@@ -3,57 +3,59 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import {
   LayoutDashboard,
   UserCog,
   Phone,
-  ChevronLeft,
-  Settings,
   BarChart3,
   Users,
-  Search,
-  Bell,
-  HelpCircle,
+  Settings,
   LogOut,
+  X,
+  Home,
+  BarChart2,
+  PhoneCall,
+  Users2,
+  Settings2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, isMobileOpen, toggleSidebar, closeMobileSidebar } = useSidebar();
 
   const navigation = [
     {
       name: "Dashboard",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      icon: Home,
       roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
     {
       name: "Analytics",
       href: "/analytics",
-      icon: BarChart3,
+      icon: BarChart2,
       roles: ["SALES_MANAGER", "SALES"],
     },
     {
-      name: "Riwayat Panggilan",
+      name: "Call History",
       href: "/call-history",
-      icon: Phone,
+      icon: PhoneCall,
       roles: ["SALES_MANAGER", "SALES"],
     },
     {
       name: "Customers",
       href: "/customers",
-      icon: Users,
+      icon: Users2,
       roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
     {
-      name: "User Management",
+      name: "Settings",
       href: "/admin/users",
-      icon: UserCog,
-      roles: ["ADMIN"],
+      icon: Settings2,
+      roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
   ];
 
@@ -67,156 +69,75 @@ export default function Sidebar() {
   };
 
   return (
-    <aside
-      className={cn(
-        "relative flex flex-col bg-background transition-all duration-300 shrink-0 border-r",
-        isCollapsed ? "w-16" : "w-72"
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeMobileSidebar}
+        />
       )}
-    >
-      {/* Search Bar */}
-      <div className="flex h-16 items-center border-b px-4">
-        {/* <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Search..."
-            className={cn(
-              "w-full rounded-md border bg-background pl-10 pr-4 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-              isCollapsed && "hidden"
-            )}
-          />
-        </div> */}
-        {!isCollapsed && (
-          <button className="p-2 hover:bg-muted rounded-md transition-colors">
-            <Bell className="h-5 w-5" />
-          </button>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed lg:relative flex flex-col bg-white transition-all duration-300 z-50 border-r border-gray-200 h-full",
+          "lg:translate-x-0",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          // Desktop: respect collapsed state, Mobile: always show full width
+          isCollapsed ? "lg:w-16 w-64" : "lg:w-64 w-64"
         )}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="ml-4 p-2 hover:bg-muted rounded-md transition-colors"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          type="button"
-        >
-          <ChevronLeft
-            className={cn(
-              "h-5 w-5 transition-transform",
-              !isCollapsed && "rotate-180"
-            )}
-          />
-        </button>
-      </div>
+      >
+        {/* Header - Mobile Only Close Button */}
+        <div className="flex h-14 items-center justify-between px-3 border-b border-gray-200 lg:hidden">
+          <span className="font-semibold text-gray-900">Menu</span>
+          <button
+            onClick={closeMobileSidebar}
+            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+            aria-label="Close sidebar"
+            type="button"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="space-y-6">
-          {/* Main Navigation */}
-          <div className="space-y-1">
-            {/* {!isCollapsed && (
-              <div className="px-3 py-2">
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Main
-                </h2>
-              </div>
-            )} */}
-            {filteredNavigation.slice(0, 3).map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                pathname === item.href || pathname.startsWith(item.href + "/");
+      <nav className="flex-1 overflow-y-auto py-4">
+        <div className="space-y-1 px-2">
+          {filteredNavigation.map((item, index) => {
+            const Icon = item.icon;
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
 
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium">{item.name}</span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Admin Section */}
-          {user?.role === "ADMIN" && !isCollapsed && (
-            <div className="px-3 py-2">
-              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Admin
-              </h2>
-            </div>
-          )}
-          {user?.role === "ADMIN" && (
-            <div className="space-y-1">
-              {filteredNavigation.slice(3).map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
-
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                      isActive
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium">{item.name}</span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+            
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                )}
+                title={isCollapsed ? item.name : undefined}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                {/* Always show text on mobile, respect collapsed state on desktop */}
+                <span className="text-sm font-medium block lg:hidden">
+                  {item.name}
+                </span>
+                {!isCollapsed && (
+                  <span className="text-sm font-medium hidden lg:block">
+                    {item.name}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </nav>
-
-      {/* User Menu */}
-      <div className="border-t">
-        <div className="p-3">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="avatar-gradient-chelsea w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-              {user?.email?.charAt(0)?.toUpperCase() || "U"}
-            </div>
-            {!isCollapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">
-                  {user?.email || "User"}
-                </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {user?.role?.replace("_", " ") || "Staff"}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-1 mt-2">
-            <button className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors">
-              <Settings className="h-4 w-4" />
-              {!isCollapsed && <span>Settings</span>}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              {!isCollapsed && <span>Logout</span>}
-            </button>
-          </div>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

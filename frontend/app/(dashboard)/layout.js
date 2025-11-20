@@ -1,11 +1,33 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+
+function DashboardContent({ children }) {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header - Fixed at top */}
+      <Header />
+
+      {/* Main Layout Container - No padding top */}
+      <div className="flex h-[calc(100vh-3.5rem)]">
+        {/* Sidebar - Fixed position on desktop, overlay on mobile */}
+        <Sidebar />
+
+        {/* Main Content Area - No gap */}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -34,15 +56,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar />
-        <SidebarInset className="flex-1">
-          <Header />
-          <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
-            {children}
-          </main>
-        </SidebarInset>
-      </div>
+      <DashboardContent>{children}</DashboardContent>
     </SidebarProvider>
   );
 }
