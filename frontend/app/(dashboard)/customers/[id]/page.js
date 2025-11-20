@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import ConversationGuideBox from "@/components/dashboard/ConversationGuideBox";
+import CallLogForm from "@/components/dashboard/CallLogForm";
+import CallLogHistory from "@/components/dashboard/CallLogHistory";
 import {
   ArrowLeft,
   Phone,
@@ -29,6 +31,7 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshCallLogs, setRefreshCallLogs] = useState(0);
 
   useEffect(() => {
     if (params.id) {
@@ -62,6 +65,11 @@ export default function CustomerDetailPage() {
     if (score === null || score === undefined)
       return "text-gray-600 bg-gray-100";
     return "text-red-700 bg-gradient-danger";
+  };
+
+  const handleCallLogSuccess = () => {
+    // Trigger refresh of call logs
+    setRefreshCallLogs((prev) => prev + 1);
   };
 
   if (loading) {
@@ -338,6 +346,22 @@ export default function CustomerDetailPage() {
         <div className="lg:col-span-1">
           {/* AI Conversation Guide Box */}
           <ConversationGuideBox customerId={customer.id} />
+
+          {/* Call Log Form */}
+          <div className="mt-6">
+            <CallLogForm
+              customerId={customer.id}
+              onSuccess={handleCallLogSuccess}
+            />
+          </div>
+
+          {/* Call Log History */}
+          <div className="mt-6">
+            <CallLogHistory
+              customerId={customer.id}
+              refreshTrigger={refreshCallLogs}
+            />
+          </div>
         </div>
       </div>
     </div>
