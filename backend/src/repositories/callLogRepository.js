@@ -385,9 +385,29 @@ class CallLogRepository {
         acc[stat.status] = stat._count.status;
         return acc;
       }, {}),
-      salesPerformance: salesDetails.sort(
-        (a, b) => b.totalCalls - a.totalCalls
-      ),
+      salesPerformance: salesDetails.sort((a, b) => {
+        // Sort by success rate (descending), then by total calls (descending)
+        const successRateDiff =
+          parseFloat(b.successRate) - parseFloat(a.successRate);
+        if (successRateDiff !== 0) return successRateDiff;
+        return b.totalCalls - a.totalCalls;
+      }),
+      topPerformers: salesDetails
+        .sort((a, b) => {
+          // Sort by success rate (descending), then by total calls (descending)
+          const successRateDiff =
+            parseFloat(b.successRate) - parseFloat(a.successRate);
+          if (successRateDiff !== 0) return successRateDiff;
+          return b.totalCalls - a.totalCalls;
+        })
+        .map((performer) => ({
+          salesId: performer.userId,
+          salesEmail: performer.email,
+          totalCalls: performer.totalCalls,
+          successRate: performer.successRate,
+          interestedCount: performer.statusBreakdown?.INTERESTED || 0,
+          completedCount: performer.statusBreakdown?.COMPLETED || 0,
+        })),
       dailyCalls: dailyCalls.map((day) => ({
         date: day.date,
         count: Number(day.count),

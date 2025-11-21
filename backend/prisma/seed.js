@@ -179,7 +179,8 @@ async function main() {
 
     // HAPUS SEMUA DATA LAMA
     console.log("Menghapus data lama...");
-    await prisma.customer.deleteMany({}); // Hanya hapus customer (skor sudah bagian dari customer)
+    await prisma.callLog.deleteMany({}); // Hapus call logs terlebih dahulu
+    await prisma.customer.deleteMany({}); // Hapus customer (skor sudah bagian dari customer)
     await prisma.user.deleteMany({}); // Hapus user juga
 
     // Buat user admin default (gunakan environment variables)

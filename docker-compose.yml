@@ -1,59 +1,97 @@
 services:
-  # 1. Layanan Database (PostgreSQL)
+  # 1. Database (PostgreSQL)
   db:
     image: postgres:15-alpine
     container_name: portal_db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: portal_banking
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - portal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d portal_banking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # 2. Backend (Express.js)
-  # backend:
-  #   container_name: portal_backend
-  #   build: ./backend
-  #   ports:
-  #     - "8000:8000"
-  #     - "5555:5555" # Port Prisma Studio
-  #   environment:
-  #     DATABASE_URL: "postgresql://user:password@db:5432/portal_banking"
-  #     NODE_ENV: "development"
-  #   volumes:
-  #     # Ini adalah kunci "hot-reloading":
-  #     # Menyinkronkan kode lokal Anda ke dalam container
-  #     - ./backend/src:/usr/src/app/src
-  #     - ./backend/prisma:/usr/src/app/prisma
-  #     - ./backend/package.json:/usr/src/app/package.json
-  #     - ./backend/.env:/usr/src/app/.env
-  #   depends_on:
-  #     - db
+  # 2. Backend (Express.js with Prisma)
+  backend:
+    container_name: portal_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+      - "5555:5555" # Prisma Studio
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override DATABASE_URL untuk Docker network
+      DATABASE_URL: "postgresql://user:password@db:5432/portal_banking"
+      NODE_ENV: "development"
+      PORT: 8000
+    volumes:
+      # Hot-reload: sync local code to container
+      - ./backend/src:/usr/src/app/src
+      - ./backend/prisma:/usr/src/app/prisma
+      - ./backend/package.json:/usr/src/app/package.json
+      - ./backend/package-lock.json:/usr/src/app/package-lock.json
+      # Exclude node_modules and build artifacts
+      - /usr/src/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - portal-network
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && npm run dev"
 
-  # # 3. Layanan Frontend (Next.js)
-  # frontend:
-  #   container_name: portal_frontend
-  #   build: ./frontend
-  #   ports:
-  #     - "3001:3000"
-  #   environment:
-  #     NODE_ENV: "development"
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #   volumes:
-  #     # Kunci "hot-reloading" untuk Next.js
-  #     - ./frontend/app:/usr/src/app/app
-  #     - ./frontend/components:/usr/src/app/components
-  #     - ./frontend/contexts:/usr/src/app/contexts
-  #     - ./frontend/public:/usr/src/app/public
-  #     - ./frontend/package.json:/usr/src/app/package.json
-  #     # Tidak mount next.config.js untuk menghindari infinite loop
-  #     - /usr/src/app/node_modules
-  #     - /usr/src/app/.next
-  #   depends_on:
-  #     - backend
+  # 3. Frontend (Next.js)
+  frontend:
+    container_name: portal_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: "development"
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_URL: "http://localhost:8000/api"
+    volumes:
+      # Hot-reload: sync local code to container
+      - ./frontend/app:/app/app
+      - ./frontend/components:/app/components
+      - ./frontend/contexts:/app/contexts
+      - ./frontend/hooks:/app/hooks
+      - ./frontend/lib:/app/lib
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/package-lock.json:/app/package-lock.json
+      - ./frontend/next.config.mjs:/app/next.config.mjs
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - ./frontend/tailwind.config.mjs:/app/tailwind.config.mjs
+      - ./frontend/components.json:/app/components.json
+      # Exclude node_modules and build artifacts
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - portal-network
+    restart: unless-stopped
+
+networks:
+  portal-network:
+    driver: bridge
 
 volumes:
-  pgdata: # Volume untuk menyimpan data DB
+  pgdata:
