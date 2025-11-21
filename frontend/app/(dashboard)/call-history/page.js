@@ -45,7 +45,8 @@ export default function CallHistoryPage() {
       const params = {
         page,
         limit: itemsPerPage,
-        ...(filters.status && filters.status !== "ALL" && { status: filters.status }),
+        ...(filters.status &&
+          filters.status !== "ALL" && { status: filters.status }),
         ...(filters.search && { search: filters.search }),
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
@@ -137,44 +138,75 @@ export default function CallHistoryPage() {
       />
 
       {/* Table */}
-      <Card>
-        <CardContent className="p-2 m-2">
+      {/* Call Logs Table */}
+      <Card className="border-0 shadow-lg">
+        <CardContent className="p-6">
           {error && (
-            <div className="flex items-center gap-2 rounded-md bg-red-50 p-4 text-sm text-red-600">
+            <div className="flex items-center gap-2 rounded-md bg-red-50 p-4 mb-4 text-sm text-red-600">
               <AlertCircle className="h-4 w-4" />
               {error}
             </div>
           )}
 
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex justify-center py-16">
+              <div className="text-center">
+                <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground">
+                  Memuat riwayat panggilan...
+                </p>
+              </div>
             </div>
           ) : callLogs.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Tidak ada riwayat panggilan
+            <div className="py-16 text-center">
+              <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Phone className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-lg font-medium text-foreground mb-2">
+                Belum ada riwayat panggilan
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Riwayat panggilan akan muncul di sini setelah Anda melakukan
+                panggilan
+              </p>
             </div>
           ) : (
             <>
-              <div className="rounded-lg border border-border/50 overflow-hidden shadow-sm">
+              <div className="overflow-hidden rounded-lg border border-gray-200">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="font-semibold">Waktu</TableHead>
-                        <TableHead className="font-semibold">Nasabah</TableHead>
-                        <TableHead className="font-semibold">Status</TableHead>
-                        <TableHead className="font-semibold">Catatan</TableHead>
-                        <TableHead className="font-semibold">Oleh</TableHead>
-                        <TableHead className="font-semibold text-right">Aksi</TableHead>
+                      <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100 hover:from-blue-50 hover:to-indigo-50">
+                        <TableHead className="font-bold text-gray-700 h-12 pl-6">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1 h-4 bg-blue-600 rounded"></div>
+                            Waktu Panggilan
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-700 pl-6">
+                          Informasi Nasabah
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-700 pl-6">
+                          Status
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-700 pl-6">
+                          Catatan
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-700 pl-6">
+                          Penanggung Jawab
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-700 text-right pr-6">
+                          Aksi
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {callLogs.map((log) => (
+                      {callLogs.map((log, index) => (
                         <CallLogTableRow
                           key={log.id}
                           log={log}
                           onUpdate={handleUpdateCallLog}
+                          index={index}
                         />
                       ))}
                     </TableBody>
@@ -183,14 +215,15 @@ export default function CallHistoryPage() {
               </div>
 
               {/* Pagination */}
-              <PaginationControls
-                currentPage={page}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setPage}
-                className="border-t p-4"
-              />
+              <div className="mt-4">
+                <PaginationControls
+                  currentPage={page}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setPage}
+                />
+              </div>
             </>
           )}
         </CardContent>

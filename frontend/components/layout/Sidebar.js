@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils";
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { isCollapsed, isMobileOpen, toggleSidebar, closeMobileSidebar } = useSidebar();
+  const { isCollapsed, isMobileOpen, toggleSidebar, closeMobileSidebar } =
+    useSidebar();
 
   const navigation = [
     {
@@ -34,15 +35,15 @@ export default function Sidebar() {
       roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
     {
-      name: "Analytics",
-      href: "/analytics",
-      icon: BarChart2,
-      roles: ["SALES_MANAGER", "SALES"],
-    },
-    {
       name: "Call History",
       href: "/call-history",
       icon: PhoneCall,
+      roles: ["SALES_MANAGER", "SALES"],
+    },
+    {
+      name: "Analytics",
+      href: "/analytics",
+      icon: BarChart2,
       roles: ["SALES_MANAGER", "SALES"],
     },
     {
@@ -55,7 +56,7 @@ export default function Sidebar() {
       name: "Settings",
       href: "/admin/users",
       icon: Settings2,
-      roles: ["ADMIN", "SALES_MANAGER", "SALES"],
+      roles: ["ADMIN"],
     },
   ];
 
@@ -101,42 +102,41 @@ export default function Sidebar() {
           </button>
         </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <div className="space-y-1 px-2">
-          {filteredNavigation.map((item, index) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-1 px-2">
+            {filteredNavigation.map((item, index) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href + "/");
 
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                )}
-                title={isCollapsed ? item.name : undefined}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                {/* Always show text on mobile, respect collapsed state on desktop */}
-                <span className="text-sm font-medium block lg:hidden">
-                  {item.name}
-                </span>
-                {!isCollapsed && (
-                  <span className="text-sm font-medium hidden lg:block">
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  )}
+                  title={isCollapsed ? item.name : undefined}
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {/* Always show text on mobile, respect collapsed state on desktop */}
+                  <span className="text-sm font-medium block lg:hidden">
                     {item.name}
                   </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                  {!isCollapsed && (
+                    <span className="text-sm font-medium hidden lg:block">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </aside>
     </>
   );

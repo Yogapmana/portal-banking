@@ -46,7 +46,7 @@ export default function ConversationGuideBox({ customerId }) {
 
   if (loading) {
     return (
-      <Card className="border-border/50 shadow-elevated sticky top-6">
+      <Card className="border-border/50 shadow-elevated">
         <CardHeader className="bg-linear-to-r from-purple-50 to-blue-50">
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600" />
@@ -65,7 +65,7 @@ export default function ConversationGuideBox({ customerId }) {
 
   if (error) {
     return (
-      <Card className="border-border/50 shadow-elevated sticky top-6">
+      <Card className="border-border/50 shadow-elevated">
         <CardHeader className="bg-linear-to-r">
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600" />
@@ -103,7 +103,7 @@ export default function ConversationGuideBox({ customerId }) {
   if (!guide) return null;
 
   return (
-    <Card className="border-border/50 shadow-elevated sticky top-6 overflow-hidden">
+    <Card className="border-border/50 shadow-elevated overflow-hidden">
       <CardHeader className="bg-linear-to-r from-purple-50 to-blue-50 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export default function ConversationGuideBox({ customerId }) {
           </Badge>
         )}
       </CardHeader>
-      <CardContent className="pt-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+      <CardContent className="pt-6 space-y-6 max-h-[600px] overflow-y-auto">
         {/* Opening Section */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-2">
