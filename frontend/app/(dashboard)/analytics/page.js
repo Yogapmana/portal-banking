@@ -18,6 +18,7 @@ import StatisticsCard from "@/components/dashboard/StatisticsCard";
 import StatusBadge, {
   getStatusColor,
 } from "@/components/dashboard/StatusBadge";
+import TeamPerformanceChart from "@/components/dashboard/TeamPerformanceChart";
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -197,7 +198,7 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Team Stats */}
+      {/* Team Stats
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatisticsCard
           title="Total Panggilan"
@@ -227,9 +228,15 @@ export default function AnalyticsPage() {
           description="Team average"
           className="fade-in"
         />
-      </div>
+      </div> */}
 
-      {/* Team Status Breakdown */}
+      {/* Team Performance Chart */}
+      <TeamPerformanceChart
+        teamStats={stats}
+        topPerformers={stats.topPerformers || stats.salesPerformance || []}
+      />
+
+      {/* Team Status Breakdown
       <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md fade-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
@@ -252,7 +259,7 @@ export default function AnalyticsPage() {
             )}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Top Performers - Always show for SALES_MANAGER */}
       <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md fade-in">

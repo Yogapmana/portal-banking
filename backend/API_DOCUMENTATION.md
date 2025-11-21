@@ -4,11 +4,41 @@
 
 ### Prerequisites
 
+**Option 1: Docker (Recommended)**
+
+- Docker 20.10+
+- Docker Compose 2.0+
+
+**Option 2: Local Development**
+
 - Node.js v18+
-- PostgreSQL database
+- PostgreSQL 14+
 - npm or yarn
 
 ### Installation
+
+#### 🐳 Using Docker (Recommended)
+
+```bash
+# Setup environment
+cp backend/.env.example backend/.env
+# Edit backend/.env and add your GEMINI_API_KEY
+
+# Build and start all services
+docker-compose up -d --build
+
+# Seed database (first time only)
+docker exec -it portal_backend npm run seed
+
+# Access the API
+# Backend: http://localhost:8000/api
+# Frontend: http://localhost:3000
+# Prisma Studio: docker exec -it portal_backend npx prisma studio
+```
+
+📖 **Full Docker Guide**: See [DOCKER_SETUP.md](../DOCKER_SETUP.md) and [QUICKSTART.md](../QUICKSTART.md)
+
+#### 💻 Local Development (Without Docker)
 
 ```bash
 # Install dependencies
@@ -39,6 +69,8 @@ PORT=8000
 NODE_ENV=development
 
 # Database
+# For Docker: postgresql://user:password@db:5432/portal_banking
+# For Local: postgresql://user:password@localhost:5432/portal_banking
 DATABASE_URL="postgresql://user:password@localhost:5432/portal_banking"
 
 # JWT
@@ -47,6 +79,9 @@ JWT_EXPIRES_IN="7d"
 
 # Security
 BCRYPT_SALT_ROUNDS=12
+
+# Gemini AI (for conversation guides)
+GEMINI_API_KEY="your-gemini-api-key-here"
 
 # CORS
 CORS_ORIGIN="*"
@@ -602,22 +637,395 @@ Authorization: Bearer <admin_token>
 
 ---
 
+---
+
+## 📞 Call Logs Management
+
+### Create Call Log
+
+**POST** `/api/call-logs`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "customerId": 1,
+  "callDuration": 180,
+  "callNotes": "Discussed loan options, customer interested",
+  "callResult": "INTERESTED",
+  "nextFollowUpDate": "2025-11-25T10:00:00.000Z"
+}
+```
+
+**Call Result Options:**
+
+- `SUCCESS` - Call successful, customer converted
+- `INTERESTED` - Customer showed interest
+- `NOT_INTERESTED` - Customer not interested
+- `NO_ANSWER` - No answer
+- `CALLBACK` - Customer requested callback
+- `WRONG_NUMBER` - Wrong number
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Call log berhasil dibuat",
+  "data": {
+    "id": 1,
+    "customerId": 1,
+    "salesId": 2,
+    "callDuration": 180,
+    "callNotes": "Discussed loan options, customer interested",
+    "callResult": "INTERESTED",
+    "nextFollowUpDate": "2025-11-25T10:00:00.000Z",
+    "createdAt": "2025-11-21T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### Get All Call Logs
+
+**GET** `/api/call-logs`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+
+- `page` (number, default: 1)
+- `limit` (number, default: 20)
+- `callResult` (string) - Filter by result
+- `startDate` (ISO date) - Filter from date
+- `endDate` (ISO date) - Filter to date
+- `customerId` (number) - Filter by customer
+
+**Example:**
+
+```
+GET /api/call-logs?page=1&limit=20&callResult=SUCCESS&startDate=2025-11-01
+```
+
+**Response:**
+
+```json
+{
+  "callLogs": [
+    {
+      "id": 1,
+      "customerId": 1,
+      "customerName": "John Doe",
+      "customerPhone": "081234567890",
+      "salesId": 2,
+      "salesEmail": "sales@example.com",
+      "callDuration": 180,
+      "callNotes": "Discussed loan options",
+      "callResult": "INTERESTED",
+      "nextFollowUpDate": "2025-11-25T10:00:00.000Z",
+      "createdAt": "2025-11-21T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 5,
+    "totalCallLogs": 100,
+    "limit": 20
+  }
+}
+```
+
+---
+
+### Get Call Statistics
+
+**GET** `/api/call-logs/statistics`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+
+- `startDate` (ISO date) - Statistics from date
+- `endDate` (ISO date) - Statistics to date
+
+**Response:**
+
+```json
+{
+  "totalCalls": 150,
+  "successfulCalls": 45,
+  "successRate": 30.0,
+  "averageDuration": 165,
+  "callsByResult": {
+    "SUCCESS": 45,
+    "INTERESTED": 50,
+    "NOT_INTERESTED": 30,
+    "NO_ANSWER": 15,
+    "CALLBACK": 8,
+    "WRONG_NUMBER": 2
+  }
+}
+```
+
+---
+
+### Get My Call Statistics (Personal)
+
+**GET** `/api/call-logs/my-statistics`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "totalCalls": 25,
+  "successfulCalls": 8,
+  "successRate": 32.0,
+  "averageDuration": 170,
+  "callsByResult": {
+    "SUCCESS": 8,
+    "INTERESTED": 10,
+    "NOT_INTERESTED": 5,
+    "NO_ANSWER": 2
+  }
+}
+```
+
+---
+
+### Get Team Statistics (Manager/Admin)
+
+**GET** `/api/call-logs/team-statistics`
+
+**Headers:**
+
+```
+Authorization: Bearer <manager_or_admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "teamStats": [
+    {
+      "salesId": 2,
+      "salesEmail": "sales1@example.com",
+      "totalCalls": 50,
+      "successfulCalls": 15,
+      "successRate": "30.00",
+      "averageDuration": 165
+    },
+    {
+      "salesId": 3,
+      "salesEmail": "sales2@example.com",
+      "totalCalls": 45,
+      "successfulCalls": 20,
+      "successRate": "44.44",
+      "averageDuration": 180
+    }
+  ],
+  "overallStats": {
+    "totalCalls": 150,
+    "totalSuccessful": 45,
+    "overallSuccessRate": "30.00",
+    "averageDuration": 172
+  }
+}
+```
+
+---
+
+### Get Top Performers (Manager/Admin)
+
+**GET** `/api/call-logs/top-performers`
+
+**Headers:**
+
+```
+Authorization: Bearer <manager_or_admin_token>
+```
+
+**Query Parameters:**
+
+- `limit` (number, default: 10) - Number of top performers
+
+**Response:**
+
+```json
+{
+  "topPerformers": [
+    {
+      "salesId": 3,
+      "salesEmail": "sales2@example.com",
+      "totalCalls": 45,
+      "successfulCalls": 20,
+      "successRate": "44.44",
+      "averageDuration": 180,
+      "rank": 1
+    },
+    {
+      "salesId": 2,
+      "salesEmail": "sales1@example.com",
+      "totalCalls": 50,
+      "successfulCalls": 15,
+      "successRate": "30.00",
+      "averageDuration": 165,
+      "rank": 2
+    }
+  ]
+}
+```
+
+---
+
+### Update Call Log
+
+**PUT** `/api/call-logs/:id`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "callNotes": "Updated notes after follow-up",
+  "callResult": "SUCCESS",
+  "nextFollowUpDate": null
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Call log berhasil diupdate",
+  "data": { ... }
+}
+```
+
+---
+
+### Delete Call Log
+
+**DELETE** `/api/call-logs/:id`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Call log berhasil dihapus"
+}
+```
+
+---
+
+## 🤖 AI Conversation Guide
+
+### Get Conversation Guide for Customer
+
+**GET** `/api/conversation-guide/:customerId`
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "customerId": 1,
+    "guide": {
+      "greeting": "Good morning Mr./Ms. John Doe...",
+      "personalizedApproach": "Based on your profile...",
+      "productRecommendation": "We have special offers...",
+      "objectionHandling": [
+        "If customer mentions price...",
+        "If customer is busy..."
+      ],
+      "closingStrategy": "Would you like to schedule..."
+    },
+    "customerContext": {
+      "name": "John Doe",
+      "age": 35,
+      "job": "technician",
+      "score": 0.85
+    },
+    "cached": false
+  }
+}
+```
+
+**Note:**
+
+- Uses Google Gemini AI (gemini-1.5-flash-latest)
+- Results are cached for 30 minutes (in-memory) and 7 days (database)
+- Rate limited to 1 request per 2 seconds per customer
+- Requires `GEMINI_API_KEY` in environment variables
+
+---
+
 ## 🔒 Authorization Matrix
 
-| Endpoint                     | ADMIN    | SALES_MANAGER | SALES              |
-| ---------------------------- | -------- | ------------- | ------------------ |
-| POST /auth/register/admin    | ✅       | ❌            | ❌                 |
-| POST /auth/login             | ✅       | ✅            | ✅                 |
-| GET /auth/users              | ✅       | ❌            | ❌                 |
-| GET /auth/me                 | ✅       | ✅            | ✅                 |
-| POST /auth/change-password   | ✅       | ✅            | ✅                 |
-| GET /customers               | ✅ (all) | ✅ (all)      | ✅ (assigned only) |
-| GET /customers/:id           | ✅       | ✅            | ✅ (if assigned)   |
-| POST /customers              | ✅       | ✅            | ❌                 |
-| PUT /customers/:id           | ✅       | ✅            | ✅ (if assigned)   |
-| DELETE /customers/:id        | ✅       | ❌            | ❌                 |
-| POST /customers/:id/assign   | ✅       | ✅            | ❌                 |
-| POST /customers/:id/unassign | ✅       | ✅            | ❌                 |
+| Endpoint                       | ADMIN    | SALES_MANAGER | SALES              |
+| ------------------------------ | -------- | ------------- | ------------------ |
+| POST /auth/register/admin      | ✅       | ❌            | ❌                 |
+| POST /auth/login               | ✅       | ✅            | ✅                 |
+| GET /auth/users                | ✅       | ❌            | ❌                 |
+| GET /auth/me                   | ✅       | ✅            | ✅                 |
+| POST /auth/change-password     | ✅       | ✅            | ✅                 |
+| GET /customers                 | ✅ (all) | ✅ (all)      | ✅ (assigned only) |
+| GET /customers/:id             | ✅       | ✅            | ✅ (if assigned)   |
+| POST /customers                | ✅       | ✅            | ❌                 |
+| PUT /customers/:id             | ✅       | ✅            | ✅ (if assigned)   |
+| DELETE /customers/:id          | ✅       | ❌            | ❌                 |
+| POST /customers/:id/assign     | ✅       | ✅            | ❌                 |
+| POST /customers/:id/unassign   | ✅       | ✅            | ❌                 |
+| POST /call-logs                | ✅       | ✅            | ✅                 |
+| GET /call-logs                 | ✅ (all) | ✅ (all)      | ✅ (own only)      |
+| PUT /call-logs/:id             | ✅       | ✅            | ✅ (if own)        |
+| DELETE /call-logs/:id          | ✅       | ✅            | ✅ (if own)        |
+| GET /call-logs/statistics      | ✅       | ✅            | ❌                 |
+| GET /call-logs/my-statistics   | ✅       | ✅            | ✅                 |
+| GET /call-logs/team-statistics | ✅       | ✅            | ❌                 |
+| GET /call-logs/top-performers  | ✅       | ✅            | ❌                 |
+| GET /conversation-guide/:id    | ✅       | ✅            | ✅ (if assigned)   |
 
 ---
 
@@ -637,6 +1045,27 @@ curl -X POST http://localhost:8000/api/auth/login \
 
 ```bash
 curl -X GET "http://localhost:8000/api/customers?page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+**Create Call Log:**
+
+```bash
+curl -X POST http://localhost:8000/api/call-logs \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "customerId": 1,
+    "callDuration": 180,
+    "callNotes": "Customer interested in loan",
+    "callResult": "INTERESTED"
+  }'
+```
+
+**Get Conversation Guide:**
+
+```bash
+curl -X GET http://localhost:8000/api/conversation-guide/1 \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
@@ -661,6 +1090,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   assignedCustomers Customer[]
+  callLogs          CallLog[]
 }
 
 enum Role {
@@ -670,10 +1100,11 @@ enum Role {
 }
 
 model Customer {
-  id           Int     @id @default(autoincrement())
-  originalId   Int     @unique
+  id           Int       @id @default(autoincrement())
+  originalId   Int       @unique
   salesId      Int?
-  assignedTo   User?   @relation(fields: [salesId], references: [id])
+  assignedTo   User?     @relation(fields: [salesId], references: [id])
+  callLogs     CallLog[]
 
   // Customer data fields...
   name         String?
@@ -682,6 +1113,29 @@ model Customer {
   age          Int
   job          String
   // ... more fields
+}
+
+model CallLog {
+  id               Int       @id @default(autoincrement())
+  customerId       Int
+  customer         Customer  @relation(fields: [customerId], references: [id])
+  salesId          Int
+  sales            User      @relation(fields: [salesId], references: [id])
+  callDuration     Int
+  callNotes        String?
+  callResult       CallResult
+  nextFollowUpDate DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+enum CallResult {
+  SUCCESS
+  INTERESTED
+  NOT_INTERESTED
+  NO_ANSWER
+  CALLBACK
+  WRONG_NUMBER
 }
 ```
 
@@ -697,6 +1151,16 @@ Lihat [ARCHITECTURE.md](./ARCHITECTURE.md) untuk detail lengkap tentang arsitekt
 Routes → Controllers → Services → Repositories → Database
 ```
 
+**Key Features:**
+
+- ✅ Dependency Injection with Awilix
+- ✅ Repository Pattern for data access
+- ✅ Service Layer for business logic
+- ✅ Middleware for authentication & validation
+- ✅ Error handling with custom error classes
+- ✅ AI Integration with Google Gemini API
+- ✅ Two-layer caching (in-memory + database)
+
 ---
 
 ## 🛠️ Development
@@ -704,7 +1168,7 @@ Routes → Controllers → Services → Repositories → Database
 ### Available Scripts
 
 ```bash
-# Development mode with auto-reload
+# Development mode with auto-reload (local)
 npm run dev
 
 # Run database migrations
@@ -715,6 +1179,12 @@ npm run seed
 
 # Open Prisma Studio (database GUI)
 npm run studio
+
+# Docker commands
+docker-compose up -d --build     # Build and start all services
+docker-compose down              # Stop all services
+docker-compose logs -f backend   # View backend logs
+docker exec -it portal_backend sh # Access backend container
 ```
 
 ### Code Style
@@ -723,6 +1193,7 @@ npm run studio
 - Async/await for asynchronous operations
 - JSDoc comments for functions
 - Consistent naming conventions
+- Follow layered architecture pattern
 
 ---
 
@@ -738,12 +1209,23 @@ npm run studio
 | 429         | RateLimitError      | Too many requests         |
 | 500         | DatabaseError       | Database operation failed |
 | 500         | InternalServerError | Unexpected server error   |
+| 503         | ServiceUnavailable  | AI service unavailable    |
 
 ---
 
 ## 📝 Changelog
 
-### Version 2.0.0 (Current)
+### Version 3.0.0 (Current)
+
+- ✅ **Docker support** for development and production
+- ✅ **Call logs management** with full CRUD
+- ✅ **AI conversation guides** using Gemini API
+- ✅ **Performance analytics** and team statistics
+- ✅ **Two-layer caching** for AI responses
+- ✅ **Rate limiting** for AI API calls
+- ✅ **Hot reload** in Docker development mode
+
+### Version 2.0.0
 
 - ✅ Refactored to layered architecture
 - ✅ Added dependency injection

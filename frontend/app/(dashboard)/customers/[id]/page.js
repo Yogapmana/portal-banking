@@ -145,7 +145,9 @@ export default function CustomerDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customer Detail</h1>
           <p className="text-sm text-muted-foreground">
-            Informasi lengkap dan riwayat panggilan
+            {user?.role === "ADMIN"
+              ? "Informasi lengkap customer"
+              : "Informasi lengkap dan riwayat panggilan"}
           </p>
         </div>
       </div>
@@ -355,23 +357,29 @@ export default function CustomerDetailPage() {
         {/* Sidebar - Right Side */}
         <div className="lg:col-span-1">
           {/* AI Conversation Guide Box */}
-          <ConversationGuideBox customerId={customer.id} />
+          {user?.role !== "ADMIN" && (
+            <ConversationGuideBox customerId={customer.id} />
+          )}
 
-          {/* Call Log Form */}
-          <div className="mt-6">
-            <CallLogForm
-              customerId={customer.id}
-              onSuccess={handleCallLogSuccess}
-            />
-          </div>
+          {/* Call Log Form - Only for SALES and SALES_MANAGER roles */}
+          {user?.role !== "ADMIN" && (
+            <div className="mt-6">
+              <CallLogForm
+                customerId={customer.id}
+                onSuccess={handleCallLogSuccess}
+              />
+            </div>
+          )}
 
           {/* Call Log History */}
-          <div className="mt-6">
-            <CallLogHistory
-              customerId={customer.id}
-              refreshTrigger={refreshCallLogs}
-            />
-          </div>
+          {user?.role !== "ADMIN" && (
+            <div className="mt-6">
+              <CallLogHistory
+                customerId={customer.id}
+                refreshTrigger={refreshCallLogs}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

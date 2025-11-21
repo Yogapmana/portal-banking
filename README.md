@@ -6,9 +6,34 @@ A modern, secure web-based customer relationship management (CRM) platform desig
 ![Next.js](https://img.shields.io/badge/Next.js-16.0.1-black.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
 
-## 📋 Table of Contents
+## 🚀 Quick Start with Docker (Recommended)
 
+Get started in 5 minutes! See [QUICKSTART.md](QUICKSTART.md)
+
+```bash
+# Setup environment
+cp backend/.env.example backend/.env
+# Edit backend/.env and add your GEMINI_API_KEY
+
+# Build and run
+docker-compose up -d --build
+
+# Seed database (first time only)
+docker exec -it portal_backend npm run seed
+
+# Access: http://localhost:3000
+# Login: admin@bank.com / admin123
+```
+
+� **Full Docker Guide**: [DOCKER_SETUP.md](DOCKER_SETUP.md)
+
+---
+
+## �📋 Table of Contents
+
+- [Quick Start with Docker](#-quick-start-with-docker-recommended)
 - [Features](#-features)
 - [Technology Stack](#-technology-stack)
 - [Prerequisites](#-prerequisites)
@@ -48,6 +73,8 @@ A modern, secure web-based customer relationship management (CRM) platform desig
 - **Real-time statistics dashboard** showing filtered data metrics
 - **Customer probability scoring** for targeted marketing
 - **Performance tracking** for sales teams
+- **AI-powered conversation guides** using Google Gemini API
+- **Smart caching system** to reduce API calls and improve performance
 - **Data visualization** with intuitive card-based layout
 
 ### 🛡️ Security
@@ -80,80 +107,139 @@ A modern, secure web-based customer relationship management (CRM) platform desig
 
 - **Node.js 18+** - JavaScript runtime
 - **Express.js** - Web framework
-- **PostgreSQL** - Database
-- **Prisma** - ORM and database toolkit
+- **PostgreSQL 14+** - Relational database
+- **Prisma ORM** - Database toolkit and query builder
 - **JWT** - Authentication tokens
 - **Bcrypt.js** - Password hashing
 - **Joi** - Input validation
+- **Google Gemini AI** - AI-powered conversation guides
+- **Awilix** - Dependency injection container
 
 ### Development Tools
 
+- **Docker & Docker Compose** - Containerization and orchestration
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **Git** - Version control
+- **Nodemon** - Auto-reload for backend development
 
 ## 📋 Prerequisites
 
-- **Node.js 18.0.0 or higher**
-- **PostgreSQL 14 or higher**
-- **npm or yarn package manager**
-- **Git** for version control
+**Option 1: Docker (Recommended)**
+
+- Docker 20.10+
+- Docker Compose 2.0+
+
+**Option 2: Local Development**
+
+- Node.js 18.0.0 or higher
+- PostgreSQL 14 or higher
+- npm or yarn package manager
+- Git for version control
 
 ## 🚀 Installation
 
-### 1. Clone the Repository
+### Option 1: Docker Setup (Recommended - 5 Minutes)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/banking-portal.git
+cd banking-portal
+
+# 2. Setup environment variables
+cp backend/.env.example backend/.env
+# Edit backend/.env and add your GEMINI_API_KEY
+
+# 3. Build and start all services
+docker-compose up -d --build
+
+# 4. Seed database (first time only)
+docker exec -it portal_backend npm run seed
+
+# 5. Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000/api
+# Login: admin@bank.com / Admin123!
+```
+
+📖 **Full Docker Guide**: See [DOCKER_SETUP.md](DOCKER_SETUP.md) and [QUICKSTART.md](QUICKSTART.md)
+
+### Option 2: Local Development Setup
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/banking-portal.git
 cd banking-portal
 ```
 
-### 2. Install Dependencies
+#### 2. Install Dependencies
 
-#### Backend Dependencies
+**Backend Dependencies:**
 
 ```bash
 cd backend
 npm install
 ```
 
-#### Frontend Dependencies
+**Frontend Dependencies:**
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-### 3. Environment Configuration
+#### 3. Environment Configuration
 
-#### Copy Environment Template
+**Backend Environment:**
 
 ```bash
+cd backend
 cp .env.example .env
 ```
 
-#### Configure Environment Variables
-
-Edit the `.env` file with your configuration:
+Edit `backend/.env`:
 
 ```env
+# Server
+PORT=8000
+NODE_ENV=development
+
+# Database (adjust for your local PostgreSQL)
+DATABASE_URL=postgresql://username:password@localhost:5432/portal_banking
+
 # JWT Configuration
 JWT_SECRET=your-super-secure-random-jwt-secret-here-min-32-chars
+JWT_EXPIRES_IN=7d
 
-# Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/portal_banking
+# Security
+BCRYPT_SALT_ROUNDS=12
+
+# Gemini AI (get from https://aistudio.google.com/app/apikey)
+GEMINI_API_KEY=your-gemini-api-key-here
 
 # Seed User Credentials
 ADMIN_EMAIL=admin@bank.com
-ADMIN_PASSWORD=YourSecurePassword123!
+ADMIN_PASSWORD=Admin123!
 SALES_EMAIL=sales@bank.com
-SALES_PASSWORD=YourSecurePassword123!
-
-# Frontend Development
-NEXT_PUBLIC_SHOW_TEST_CREDENTIALS=false
+SALES_PASSWORD=Sales123!
 ```
 
-## 🗄️ Database Setup
+**Frontend Environment:**
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+```
+
+Edit `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NODE_ENV=development
+```
+
+## 🗄️ Database Setup (Local Development Only)
 
 ### 1. Create Database
 
@@ -169,7 +255,7 @@ createdb portal_banking
 
 ```bash
 cd backend
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 ```
 
 ### 3. Seed Database with Sample Data
@@ -187,7 +273,36 @@ This will create:
 
 ## 🏃‍♂️ Running the Application
 
-### Start Development Servers
+### Docker (Hot Reload Enabled)
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Access Prisma Studio (Database UI)
+docker exec -it portal_backend npx prisma studio
+# Open: http://localhost:5555
+```
+
+**Services:**
+
+- **Frontend**: http://localhost:3000 (Next.js with Fast Refresh)
+- **Backend**: http://localhost:8000/api (Express with nodemon)
+- **Database**: localhost:5433 (PostgreSQL)
+
+**Hot Reload:**
+
+- ✅ Backend code changes in `backend/src/` → auto-restart
+- ✅ Frontend code changes in `frontend/app/`, `frontend/components/` → auto-reload
+- ✅ Database schema changes in `backend/prisma/schema.prisma` → run migration manually
+
+### Local Development (Without Docker)
 
 #### Backend Server (Terminal 1)
 
@@ -209,9 +324,19 @@ The frontend will run on `http://localhost:3000`
 
 ### Access the Application
 
-- **Frontend Application**: http://localhost:3000
-- **API Endpoints**: http://localhost:8000/api
+**With Docker:**
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000/api
+- **Database**: localhost:5433
+- **Default Login**: admin@bank.com / Admin123!
+
+**Local Development:**
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000/api
 - **Database**: localhost:5432
+- **Default Login**: admin@bank.com / Admin123!
 
 ## 👥 User Roles and Permissions
 
@@ -518,37 +643,59 @@ npm run test:coverage      # Coverage report
 ### Environment Variables for Production
 
 ```env
+# Backend
 NODE_ENV=production
-JWT_SECRET=your-production-jwt-secret
-DATABASE_URL=postgresql://user:pass@host:5433/prod_db
+JWT_SECRET=your-production-jwt-secret-min-32-chars
+DATABASE_URL=postgresql://user:pass@host:5432/prod_db
+GEMINI_API_KEY=your-production-gemini-api-key
 ADMIN_PASSWORD=secure-production-password
-NEXT_PUBLIC_SHOW_TEST_CREDENTIALS=false
+CORS_ORIGIN=https://yourdomain.com
+
+# Frontend
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
+NODE_ENV=production
 ```
 
-### Build Commands
+### Docker Production Deployment
+
+```bash
+# Build for production
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Or use individual Dockerfiles
+cd backend
+docker build -t banking-portal-backend --target production .
+
+cd ../frontend
+docker build -t banking-portal-frontend --target production .
+```
+
+### Local Build Commands
 
 ```bash
 # Frontend build
 cd frontend
 npm run build
+npm start
 
 # Backend production setup
 cd backend
+npm ci --only=production
 npm start
 ```
 
-### Docker Deployment (Optional)
+### Production Checklist
 
-```dockerfile
-# Dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-EXPOSE 8000
-CMD ["npm", "start"]
-```
+- [ ] Update all environment variables
+- [ ] Set `NODE_ENV=production`
+- [ ] Use strong `JWT_SECRET` (min 32 chars)
+- [ ] Configure proper `CORS_ORIGIN`
+- [ ] Enable SSL/TLS for database connection
+- [ ] Set up database backups
+- [ ] Configure logging and monitoring
+- [ ] Use production-grade secrets management
+- [ ] Enable rate limiting
+- [ ] Set up CDN for static assets (optional)
 
 ## 🤝 Contributing
 
@@ -586,14 +733,35 @@ We welcome contributions! Please follow these steps:
 
 ### Common Issues
 
+#### Docker Issues
+
+```bash
+# Container won't start
+docker-compose down
+docker-compose up --build --force-recreate
+
+# View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Reset everything (⚠️ will delete data!)
+docker-compose down -v
+docker system prune -a
+```
+
 #### Database Connection Issues
 
 ```bash
-# Check PostgreSQL status
+# Docker: Check database health
+docker-compose ps
+docker exec -it portal_db psql -U user -d portal_banking
+
+# Local: Check PostgreSQL status
 sudo systemctl status postgresql
 
 # Test database connection
-psql -h localhost -p 5433 -U username -d portal_banking
+psql -h localhost -p 5433 -U user -d portal_banking  # Docker
+psql -h localhost -p 5432 -U user -d portal_banking  # Local
 ```
 
 #### Port Conflicts
@@ -602,22 +770,91 @@ psql -h localhost -p 5433 -U username -d portal_banking
 # Check which ports are in use
 netstat -tulpn | grep :3000
 netstat -tulpn | grep :8000
+netstat -tulpn | grep :5433
+
+# Docker: Change ports in docker-compose.yml
+ports:
+  - "3001:3000"  # Frontend
+  - "8001:8000"  # Backend
+  - "5434:5432"  # Database
 
 # Kill processes if needed
 kill -9 <PID>
 ```
 
+#### Hot Reload Not Working (Docker)
+
+```bash
+# Linux: Increase file watchers limit
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+
+# Restart containers
+docker-compose restart backend frontend
+```
+
 #### Environment Variable Issues
 
 ```bash
-# Check environment variables
-printenv | grep -E "JWT_SECRET|DATABASE_URL|NODE_ENV"
+# Docker: Check if .env file is loaded
+docker exec -it portal_backend printenv | grep GEMINI_API_KEY
 
-# Source environment file
-source .env
+# Local: Check environment variables
+printenv | grep -E "JWT_SECRET|DATABASE_URL|NODE_ENV|GEMINI_API_KEY"
+
+# Reload environment (Docker)
+docker-compose down
+docker-compose up -d
+
+# Source environment file (Local)
+source backend/.env
+```
+
+#### Gemini API Issues
+
+```bash
+# Verify API key is set
+docker exec -it portal_backend printenv | grep GEMINI_API_KEY
+
+# Test API key manually
+curl -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}' \
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=YOUR_API_KEY"
+```
+
+#### Migration Issues
+
+```bash
+# Docker: Reset migrations
+docker exec -it portal_backend npx prisma migrate reset
+
+# Local: Reset migrations
+cd backend
+npx prisma migrate reset
+
+# Force deploy migrations
+npx prisma migrate deploy
 ```
 
 ## 🔄 Version History
+
+### v3.0.0 (Current - November 2025)
+
+- ✅ **Docker support** with hot-reload for development
+- ✅ **Call logs management** with comprehensive tracking
+- ✅ **AI conversation guides** using Google Gemini API
+- ✅ **Performance analytics** with team statistics and rankings
+- ✅ **Two-layer caching** (in-memory + database) for AI responses
+- ✅ **Rate limiting** for AI API calls
+- ✅ **Modern UI/UX** with gradient designs and responsive layout
+- ✅ **Comprehensive documentation** with Docker guides
+
+### v2.0.0 (November 2025)
+
+- ✅ **Layered architecture** with dependency injection
+- ✅ **Repository pattern** for data access
+- ✅ **Improved error handling** with custom error classes
+- ✅ **API documentation** enhancement
 
 ### v1.0.0 (Current)
 

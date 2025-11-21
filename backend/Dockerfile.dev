@@ -1,0 +1,28 @@
+FROM node:20-alpine
+
+# Install development tools
+RUN apk add --no-cache bash
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy prisma schema first
+COPY prisma ./prisma/
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Start development server with hot reload
+CMD ["sh", "-c", "npx prisma generate && npm run dev"]
