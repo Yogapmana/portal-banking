@@ -35,7 +35,8 @@ export default function LoginPage() {
       const response = await api.auth.login(email, password);
 
       if (response.success) {
-        login(response.data.user, response.data.accessToken, response.data.refreshToken);
+        // Refresh token is automatically saved in httpOnly cookie by backend
+        login(response.data.user, response.data.accessToken);
         router.push("/dashboard");
       } else {
         setError(response.message || "Login failed");

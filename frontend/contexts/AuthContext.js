@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }) => {
   // Load user from localStorage and cookie on mount
   useEffect(() => {
     const storedToken = getCookie("token") || localStorage.getItem("token");
-    const storedRefreshToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
@@ -49,16 +48,11 @@ export const AuthProvider = ({ children }) => {
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp < currentTime) {
-          // Token expired, try to refresh
-          if (storedRefreshToken) {
-            handleTokenRefresh();
-          } else {
-            logout();
-          }
+          // Token expired, try to refresh (refresh token is in httpOnly cookie)
+          handleTokenRefresh();
         } else {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
-          setRefreshToken(storedRefreshToken);
           // Ensure cookie is set
           setCookie("token", storedToken);
         }
@@ -73,22 +67,15 @@ export const AuthProvider = ({ children }) => {
   // Handle token refresh
   const handleTokenRefresh = async () => {
     try {
-      const storedRefreshToken = localStorage.getItem("refreshToken");
-      if (storedRefreshToken) {
-        const response = await api.auth.refresh(storedRefreshToken);
+      // Refresh token is in httpOnly cookie, no need to send it
+      const response = await api.auth.refresh();
 
-        if (response.success) {
-          const newToken = response.data.accessToken;
-          const newRefreshToken = response.data.refreshToken;
+      if (response.success) {
+        const newToken = response.data.accessToken;
 
-          setToken(newToken);
-          setRefreshToken(newRefreshToken);
-          localStorage.setItem("token", newToken);
-          localStorage.setItem("refreshToken", newRefreshToken);
-          setCookie("token", newToken);
-        } else {
-          logout();
-        }
+        setToken(newToken);
+        localStorage.setItem("token", newToken);
+        setCookie("token", newToken);
       } else {
         logout();
       }
@@ -98,24 +85,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (userData, userToken, refreshTok) => {
+  const login = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
-    setRefreshToken(refreshTok);
     // Save to both localStorage and cookie
+    // Refresh token is automatically saved in httpOnly cookie by backend
     localStorage.setItem("token", userToken);
-    localStorage.setItem("refreshToken", refreshTok);
     localStorage.setItem("user", JSON.stringify(userData));
     setCookie("token", userToken);
   };
 
   const logout = async () => {
     try {
-      // Call logout API to revoke refresh token
-      const storedRefreshToken = localStorage.getItem("refreshToken");
-      if (storedRefreshToken) {
-        await api.auth.logout(storedRefreshToken);
-      }
+      // Call logout API to revoke refresh token (cookie will be sent automatically)
+      await api.auth.logout();
     } catch (error) {
       console.error("Logout API error:", error);
       // Continue with local logout even if API fails
@@ -125,9 +108,9 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setRefreshToken(null);
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     deleteCookie("token");
+    // httpOnly cookie will be cleared by backend
     router.push("/login");
   };
 

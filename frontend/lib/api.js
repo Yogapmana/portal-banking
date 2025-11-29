@@ -94,27 +94,30 @@ export const api = {
       return apiFetch("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Send cookies
       });
     },
 
-    refresh: async (refreshToken) => {
+    refresh: async () => {
+      // Refresh token is in httpOnly cookie
       return apiFetch("/auth/refresh", {
         method: "POST",
-        body: JSON.stringify({ refreshToken }),
+        credentials: "include", // Send cookies
       });
     },
 
-    logout: async (refreshToken) => {
+    logout: async () => {
+      // Refresh token is in httpOnly cookie
       return apiFetch("/auth/logout", {
         method: "POST",
-        body: JSON.stringify({ refreshToken }),
+        credentials: "include", // Send cookies
       });
     },
 
     logoutAll: async () => {
-      const token = getToken();
       return apiFetch("/auth/logout-all", {
         method: "POST",
+        credentials: "include", // Send cookies
       });
     },
 
@@ -122,6 +125,7 @@ export const api = {
       return apiFetch("/auth/register/admin", {
         method: "POST",
         body: JSON.stringify({ email, password, role }),
+        credentials: "include", // Send cookies
       });
     },
 

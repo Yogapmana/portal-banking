@@ -69,7 +69,7 @@ const config = {
  * Validate required environment variables
  */
 const validateConfig = () => {
-  const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET"];
+  const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET"];
 
   const missingEnvVars = requiredEnvVars.filter(
     (envVar) => !process.env[envVar]

@@ -16,16 +16,35 @@ class AuthController {
   register = asyncHandler(async (req, res) => {
     const { email, password, role } = req.body;
 
-    const result = await this.authService.register({
-      email,
-      password,
-      role,
+    // Extract user context
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const ipAddress =
+      req.ip ||
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.connection.remoteAddress ||
+      "Unknown";
+
+    const result = await this.authService.register(
+      { email, password, role },
+      { userAgent, ipAddress }
+    );
+
+    // Set refresh token as httpOnly cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
     res.status(201).json({
       success: true,
       message: `User ${result.user.role} berhasil dibuat`,
-      data: result,
+      data: {
+        user: result.user,
+        accessToken: result.accessToken,
+      },
     });
   });
 
@@ -36,15 +55,36 @@ class AuthController {
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const result = await this.authService.login({
-      email,
-      password,
+    // Extract user context
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const ipAddress =
+      req.ip ||
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.connection.remoteAddress ||
+      "Unknown";
+
+    const result = await this.authService.login(
+      { email, password },
+      { userAgent, ipAddress }
+    );
+
+    // Set refresh token as httpOnly cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
     res.json({
       success: true,
       message: "Login berhasil",
-      data: result,
+      data: {
+        user: result.user,
+        accessToken: result.accessToken,
+        // Don't send refreshToken in response body (it's in cookie)
+      },
     });
   });
 
@@ -157,20 +197,44 @@ class AuthController {
    * @route POST /api/auth/refresh
    */
   refresh = asyncHandler(async (req, res) => {
-    const { refreshToken } = req.body;
+    // Get refresh token from cookie or body (fallback for mobile)
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        error: "Refresh token tidak ditemukan",
+      });
+    }
 
     // Get request context
-    const context = {
-      userAgent: req.get("User-Agent"),
-      ipAddress: req.ip || req.connection.remoteAddress,
-    };
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const ipAddress =
+      req.ip ||
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.connection.remoteAddress ||
+      "Unknown";
 
-    const tokens = await this.authService.refreshToken(refreshToken, context);
+    const tokens = await this.authService.refreshToken(refreshToken, {
+      userAgent,
+      ipAddress,
+    });
+
+    // Set new refresh token as httpOnly cookie
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
+    });
 
     res.json({
       success: true,
       message: "Token refreshed successfully",
-      data: tokens,
+      data: {
+        accessToken: tokens.accessToken,
+      },
     });
   });
 
@@ -179,9 +243,20 @@ class AuthController {
    * @route POST /api/auth/logout
    */
   logout = asyncHandler(async (req, res) => {
-    const { refreshToken } = req.body;
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-    await this.authService.logout(refreshToken);
+    if (refreshToken) {
+      await this.authService.logout(refreshToken);
+    }
+
+    // Clear refresh token cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
 
     res.json({
       success: true,
@@ -197,6 +272,14 @@ class AuthController {
     const userId = req.user.userId;
 
     await this.authService.logoutAll(userId);
+
+    // Clear refresh token cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
 
     res.json({
       success: true,

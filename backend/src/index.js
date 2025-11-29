@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const { config, validateConfig } = require("./config");
 const { connectDatabase } = require("./config/database");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
@@ -19,6 +20,7 @@ const app = express();
 app.use(cors(config.cors));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // Parse cookies
 
 /**
  * Apply general API rate limiting to all /api routes
@@ -53,7 +55,7 @@ app.get("/api", (req, res) => {
   res.json({
     success: true,
     message: "Portal Banking API",
-    version: "2.0.0",
+    version: "1.0.0",
     documentation: "/api/docs",
   });
 });

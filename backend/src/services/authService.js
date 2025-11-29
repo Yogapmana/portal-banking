@@ -1,7 +1,11 @@
 const bcrypt = require("bcryptjs");
 const { config } = require("../config");
-const { generateTokenPair, verifyRefreshToken, generateAccessToken } = require("../config/jwt");
-const { PrismaClient } = require('@prisma/client');
+const {
+  generateTokenPair,
+  verifyRefreshToken,
+  generateAccessToken,
+} = require("../config/jwt");
+const { PrismaClient } = require("@prisma/client");
 const {
   ConflictError,
   AuthenticationError,
@@ -25,9 +29,12 @@ class AuthService {
    * @param {string} userData.email - User email
    * @param {string} userData.password - User password
    * @param {string} userData.role - User role
+   * @param {Object} context - Request context
+   * @param {string} context.userAgent - User agent string
+   * @param {string} context.ipAddress - IP address
    * @returns {Promise<Object>} User and token
    */
-  async register(userData) {
+  async register(userData, context = {}) {
     const { email, password, role = "SALES" } = userData;
 
     // Check if user already exists
@@ -70,8 +77,8 @@ class AuthService {
         token: tokens.refreshToken,
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        userAgent: null, // Will be set from request
-        ipAddress: null, // Will be set from request
+        userAgent: context.userAgent || null,
+        ipAddress: context.ipAddress || null,
       },
     });
 
@@ -90,9 +97,12 @@ class AuthService {
    * @param {Object} credentials - Login credentials
    * @param {string} credentials.email - User email
    * @param {string} credentials.password - User password
+   * @param {Object} context - Request context
+   * @param {string} context.userAgent - User agent string
+   * @param {string} context.ipAddress - IP address
    * @returns {Promise<Object>} User and token
    */
-  async login(credentials) {
+  async login(credentials, context = {}) {
     const { email, password } = credentials;
 
     // Find user
@@ -120,8 +130,8 @@ class AuthService {
         token: tokens.refreshToken,
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        userAgent: null, // Will be set from request
-        ipAddress: null, // Will be set from request
+        userAgent: context.userAgent || null,
+        ipAddress: context.ipAddress || null,
       },
     });
 
