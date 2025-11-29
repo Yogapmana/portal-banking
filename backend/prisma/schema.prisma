@@ -20,6 +20,7 @@ model User {
   assignedCustomers Customer[] @relation("CustomerAssignment")
   callLogs          CallLog[]  @relation("UserCallLogs")
 
+  @@index([role])
   @@map("users")
 }
 
@@ -67,6 +68,10 @@ model Customer {
   // Relations
   callLogs CallLog[] @relation("CustomerCallLogs")
 
+  @@index([salesId])
+  @@index([name])
+  @@index([phoneNumber])
+  @@index([score])
   @@map("customers")
 }
 
@@ -89,6 +94,7 @@ model CallLog {
   @@index([customerId])
   @@index([userId])
   @@index([status])
+  @@index([callDate])
   @@map("call_logs")
 }
 

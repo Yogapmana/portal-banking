@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsRateLimited(false);
     setLoading(true);
 
     try {
@@ -39,7 +41,16 @@ export default function LoginPage() {
         setError(response.message || "Login failed");
       }
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      // Handle rate limiting specifically
+      if (err.status === 429) {
+        setIsRateLimited(true);
+        setError(
+          err.message ||
+            "Terlalu banyak percobaan login. Silakan tunggu 15 menit."
+        );
+      } else {
+        setError(err.message || "Invalid email or password");
+      }
     } finally {
       setLoading(false);
     }
@@ -79,14 +90,31 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 fade-in">
+              <div
+                className={`flex items-center gap-2 rounded-lg p-3 text-sm fade-in ${
+                  isRateLimited
+                    ? "bg-orange-50 border border-orange-200 text-orange-700"
+                    : "bg-red-50 border border-red-200 text-red-700"
+                }`}
+              >
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
+                <div className="flex-1">
+                  <span>{error}</span>
+                  {isRateLimited && (
+                    <p className="text-xs mt-1 opacity-90">
+                      Untuk keamanan akun Anda, silakan tunggu beberapa saat
+                      sebelum mencoba lagi.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-semibold text-foreground">
+              <Label
+                htmlFor="email"
+                className="text-sm font-semibold text-foreground"
+              >
                 Email Address
               </Label>
               <div className="relative">
@@ -98,14 +126,17 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || isRateLimited}
                   className="pl-10 h-12 border-gray-200 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password" className="text-sm font-semibold text-foreground">
+              <Label
+                htmlFor="password"
+                className="text-sm font-semibold text-foreground"
+              >
                 Password
               </Label>
               <div className="relative">
@@ -117,7 +148,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || isRateLimited}
                   className="pl-10 h-12 border-gray-200 focus:border-[#034694] focus:ring-2 focus:ring-[#034694]/20 transition-all"
                 />
               </div>
@@ -126,9 +157,14 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full h-12 btn-enhanced bg-linear-to-r from-[#034694] to-[#0575E6] hover:from-[#034694]/90 hover:to-[#0575E6] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              disabled={loading}
+              disabled={loading || isRateLimited}
             >
-              {loading ? (
+              {isRateLimited ? (
+                <span className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Too Many Attempts
+                </span>
+              ) : loading ? (
                 <span className="flex items-center gap-3">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                   <span>Sign In...</span>

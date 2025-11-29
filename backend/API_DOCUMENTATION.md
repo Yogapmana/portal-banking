@@ -120,6 +120,47 @@ http://localhost:8000/api
 }
 ```
 
+**Rate Limit Response (429):**
+
+```json
+{
+  "success": false,
+  "error": "Terlalu banyak request. Silakan coba lagi nanti."
+}
+```
+
+---
+
+## 🛡️ Rate Limiting
+
+API ini mengimplementasikan rate limiting untuk melindungi dari abuse dan brute force attacks. Setiap response akan menyertakan header rate limiting:
+
+**Rate Limit Headers:**
+
+```
+X-RateLimit-Limit: 5          # Maximum requests allowed
+X-RateLimit-Remaining: 3      # Remaining requests
+X-RateLimit-Reset: 2025-11-28T10:15:00.000Z  # Reset time
+```
+
+### Rate Limits per Endpoint
+
+| Endpoint                          | Limit       | Window   | Description                                  |
+| --------------------------------- | ----------- | -------- | -------------------------------------------- |
+| `POST /api/auth/login`            | 5 requests  | 15 menit | Per IP + Email, hanya menghitung login gagal |
+| `POST /api/auth/change-password`  | 3 requests  | 1 jam    | Per User ID                                  |
+| `POST /api/auth/register/admin`   | 10 requests | 1 jam    | Per Admin User ID                            |
+| `GET /api/conversation-guide/:id` | 20 requests | 5 menit  | Per User ID (AI calls)                       |
+| `POST /api/customers/bulk-*`      | 5 requests  | 1 jam    | Per User ID (bulk operations)                |
+
+**Catatan:**
+
+- Rate limiting berdasarkan kombinasi IP address dan identifier (email/user ID)
+- Login yang berhasil tidak dihitung dalam rate limit (hanya login gagal)
+- Setelah 5x login gagal, user harus tunggu 15 menit untuk mencoba lagi
+- Saat limit terlampaui, endpoint akan return HTTP 429 (Too Many Requests)
+- Reset time ditampilkan dalam response headers
+
 ---
 
 ## 🔐 Authentication

@@ -37,31 +37,49 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`API Request: ${config.method || "GET"} ${url}`);
-
     const response = await fetch(url, config);
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(`API Error (${response.status}):`, data);
+      // Handle rate limiting
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        const resetTime = response.headers.get("X-RateLimit-Reset");
+
+        throw {
+          status: 429,
+          message:
+            data.error ||
+            data.message ||
+            "Terlalu banyak percobaan. Silakan coba lagi nanti.",
+          error: "RATE_LIMIT_EXCEEDED",
+          retryAfter: retryAfter,
+          resetTime: resetTime,
+        };
+      }
+
       throw {
         status: response.status,
-        message: data.message || "Something went wrong",
+        message: data.message || data.error || "Something went wrong",
         error: data.error,
       };
     }
 
     return data;
   } catch (error) {
-    console.error("API Fetch Error:", error);
+    // Handle authentication errors
     if (error.status === 401) {
       // Token expired or invalid
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        // Only redirect if not on login page
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
       }
     }
+
     throw error;
   }
 }

@@ -3,6 +3,7 @@ const cors = require("cors");
 const { config, validateConfig } = require("./config");
 const { connectDatabase } = require("./config/database");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 // Import routes
 const authRoutes = require("./routes/auth");
@@ -18,6 +19,12 @@ const app = express();
 app.use(cors(config.cors));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/**
+ * Apply general API rate limiting to all /api routes
+ * Individual routes can have their own stricter limiters
+ */
+app.use("/api", apiLimiter);
 
 /**
  * API Routes

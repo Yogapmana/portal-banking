@@ -14,10 +14,15 @@ const getPrismaClient = () => {
       errorFormat: config.server.env === "development" ? "pretty" : "minimal",
     });
 
-    // Handle graceful shutdown
-    process.on("beforeExit", async () => {
+    const handleShutdown = async (signal) => {
+      console.log(`Received ${signal}. Closing database connection...`);
       await prismaInstance.$disconnect();
-    });
+      console.log("Database disconnected.");
+      process.exit(0);
+    };
+
+    process.on("SIGINT", () => handleShutdown("SIGINT"));
+    process.on("SIGTERM", () => handleShutdown("SIGTERM"));
   }
 
   return prismaInstance;

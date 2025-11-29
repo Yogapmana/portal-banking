@@ -37,9 +37,6 @@ Thumbs.db
 dist/
 build/
 
-# Prisma
-prisma/migrations/
-
 # Temporary
 tmp/
 temp/

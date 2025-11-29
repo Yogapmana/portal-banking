@@ -6,6 +6,11 @@ const {
   requireAdmin,
   requireSalesManager,
 } = require("../middleware/auth");
+const {
+  loginLimiter,
+  passwordChangeLimiter,
+  registrationLimiter,
+} = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
@@ -21,6 +26,7 @@ router.post(
   "/register/admin",
   authMiddleware,
   requireAdmin,
+  registrationLimiter,
   validate("register"),
   authController.register
 );
@@ -37,7 +43,7 @@ router.post("/register", validate("register"), authController.publicRegister);
  * @desc    Login user
  * @access  Public
  */
-router.post("/login", validate("login"), authController.login);
+router.post("/login", loginLimiter, validate("login"), authController.login);
 
 /**
  * @route   GET /api/auth/users
@@ -94,7 +100,7 @@ router.delete(
  * @desc    Change password
  * @access  Private
  */
-router.post("/change-password", authMiddleware, authController.changePassword);
+router.post("/change-password", authMiddleware, passwordChangeLimiter, authController.changePassword);
 
 /**
  * @route   GET /api/auth/sales-list

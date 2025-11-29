@@ -1,6 +1,7 @@
 const express = require("express");
 const ConversationGuideController = require("../controllers/conversationGuideController");
 const { authMiddleware } = require("../middleware/auth");
+const { aiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 const conversationGuideController = new ConversationGuideController();
@@ -13,6 +14,6 @@ router.use(authMiddleware);
  * @desc Get AI-generated conversation guide for a customer
  * @access SALES, SALES_MANAGER
  */
-router.get("/:customerId", conversationGuideController.getConversationGuide);
+router.get("/:customerId", aiLimiter, conversationGuideController.getConversationGuide);
 
 module.exports = router;

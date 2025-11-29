@@ -1,6 +1,7 @@
 const express = require("express");
 const container = require("../container");
 const { authMiddleware, requireAdminOrManager } = require("../middleware/auth");
+const { bulkOperationLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post(
   "/bulk-assign",
   authMiddleware,
   requireAdminOrManager,
+  bulkOperationLimiter,
   customerController.bulkAssignCustomers
 );
 
@@ -53,6 +55,7 @@ router.post(
   "/bulk-unassign",
   authMiddleware,
   requireAdminOrManager,
+  bulkOperationLimiter,
   customerController.bulkUnassignCustomers
 );
 

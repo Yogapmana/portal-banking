@@ -107,3 +107,5 @@ Thumbs.db
 
 # Prisma
 prisma/dev.db
+
+backend-key.pem
