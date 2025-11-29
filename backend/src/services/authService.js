@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { config } = require("../config");
-const { generateToken } = require("../config/jwt");
+const { generateTokenPair, verifyRefreshToken, generateAccessToken } = require("../config/jwt");
+const { PrismaClient } = require('@prisma/client');
 const {
   ConflictError,
   AuthenticationError,
@@ -15,6 +16,7 @@ const {
 class AuthService {
   constructor(userRepository) {
     this.userRepository = userRepository;
+    this.prisma = new PrismaClient();
   }
 
   /**
@@ -55,16 +57,31 @@ class AuthService {
       role: role.toUpperCase(),
     });
 
-    // Generate token
-    const token = generateToken({
+    // Generate tokens
+    const tokens = generateTokenPair({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
+    // Store refresh token in database
+    await this.prisma.refreshToken.create({
+      data: {
+        token: tokens.refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        userAgent: null, // Will be set from request
+        ipAddress: null, // Will be set from request
+      },
+    });
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
     return {
-      user,
-      token,
+      user: userWithoutPassword,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
@@ -90,11 +107,22 @@ class AuthService {
       throw new AuthenticationError("Email atau password salah");
     }
 
-    // Generate token
-    const token = generateToken({
+    // Generate tokens
+    const tokens = generateTokenPair({
       userId: user.id,
       email: user.email,
       role: user.role,
+    });
+
+    // Store refresh token in database
+    await this.prisma.refreshToken.create({
+      data: {
+        token: tokens.refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        userAgent: null, // Will be set from request
+        ipAddress: null, // Will be set from request
+      },
     });
 
     // Remove password from response
@@ -102,7 +130,8 @@ class AuthService {
 
     return {
       user: userWithoutPassword,
-      token,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
@@ -222,6 +251,139 @@ class AuthService {
     await this.userRepository.update(userId, {
       password: hashedPassword,
     });
+  }
+
+  /**
+   * Refresh access token
+   * @param {string} refreshToken - Refresh token
+   * @param {Object} context - Request context (userAgent, ipAddress)
+   * @returns {Promise<Object>} New token pair
+   */
+  async refreshToken(refreshToken, context = {}) {
+    try {
+      // Verify refresh token
+      const decoded = verifyRefreshToken(refreshToken);
+
+      // Check if refresh token exists in database and is not revoked
+      const storedToken = await this.prisma.refreshToken.findFirst({
+        where: {
+          token: refreshToken,
+          revokedAt: null,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!storedToken) {
+        throw new AuthenticationError("Invalid refresh token");
+      }
+
+      // Generate new token pair
+      const tokens = generateTokenPair({
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role,
+      });
+
+      // Store new refresh token
+      await this.prisma.refreshToken.create({
+        data: {
+          token: tokens.refreshToken,
+          userId: decoded.userId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          userAgent: context.userAgent,
+          ipAddress: context.ipAddress,
+        },
+      });
+
+      // Revoke old refresh token
+      await this.prisma.refreshToken.update({
+        where: {
+          id: storedToken.id,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      };
+    } catch (error) {
+      throw new AuthenticationError("Invalid or expired refresh token");
+    }
+  }
+
+  /**
+   * Logout user (revoke refresh token)
+   * @param {string} refreshToken - Refresh token to revoke
+   * @returns {Promise<void>}
+   */
+  async logout(refreshToken) {
+    const storedToken = await this.prisma.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        revokedAt: null,
+      },
+    });
+
+    if (storedToken) {
+      await this.prisma.refreshToken.update({
+        where: {
+          id: storedToken.id,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+    }
+  }
+
+  /**
+   * Logout all devices (revoke all refresh tokens for user)
+   * @param {number} userId - User ID
+   * @returns {Promise<void>}
+   */
+  async logoutAll(userId) {
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        userId: userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Clean up expired refresh tokens (maintenance)
+   * @returns {Promise<number>} Number of deleted tokens
+   */
+  async cleanupExpiredTokens() {
+    const result = await this.prisma.refreshToken.deleteMany({
+      where: {
+        OR: [
+          {
+            expiresAt: {
+              lt: new Date(),
+            },
+          },
+          {
+            revokedAt: {
+              not: null,
+            },
+          },
+        ],
+      },
+    });
+
+    return result.count;
   }
 }
 

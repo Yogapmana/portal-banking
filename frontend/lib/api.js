@@ -97,6 +97,27 @@ export const api = {
       });
     },
 
+    refresh: async (refreshToken) => {
+      return apiFetch("/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+      });
+    },
+
+    logout: async (refreshToken) => {
+      return apiFetch("/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+      });
+    },
+
+    logoutAll: async () => {
+      const token = getToken();
+      return apiFetch("/auth/logout-all", {
+        method: "POST",
+      });
+    },
+
     register: async (email, password, role) => {
       return apiFetch("/auth/register/admin", {
         method: "POST",

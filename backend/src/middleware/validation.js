@@ -65,6 +65,19 @@ const schemas = {
       "any.only": "SortOrder hanya boleh: asc, desc",
     }),
   }),
+
+  refresh: Joi.object({
+    refreshToken: Joi.string().required().messages({
+      "string.empty": "Refresh token tidak boleh kosong",
+      "any.required": "Refresh token diperlukan",
+    }),
+  }),
+
+  logout: Joi.object({
+    refreshToken: Joi.string().optional().messages({
+      "string.base": "Refresh token harus berupa string",
+    }),
+  }),
 };
 
 // Sanitization function

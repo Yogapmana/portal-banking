@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+const { verifyAccessToken } = require("../config/jwt");
 
 const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -6,24 +6,34 @@ const authMiddleware = (req, res, next) => {
   if (!token) {
     return res
       .status(401)
-      .json({ message: "Access denied. No token provided." });
+      .json({
+        success: false,
+        message: "Access denied. No token provided."
+      });
   }
 
   try {
-    // JWT_SECRET harus selalu ada di environment variables
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET environment variable is not configured");
-    }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Use the consistent verifyAccessToken function from jwt config
+    const decoded = verifyAccessToken(token);
     req.user = decoded;
     next();
   } catch (error) {
-    if (error.message.includes("JWT_SECRET")) {
-      return res.status(500).json({
-        message: "Server configuration error",
-      });
+    let message = "Invalid token.";
+    let status = 401;
+
+    if (error.message.includes("Access token expired")) {
+      message = "Access token expired";
+      status = 401;
+    } else if (error.message.includes("Invalid access token")) {
+      message = "Invalid access token";
+      status = 401;
     }
-    res.status(401).json({ message: "Invalid token." });
+
+    return res.status(status).json({
+      success: false,
+      message,
+      error: "AUTH_ERROR"
+    });
   }
 };
 
@@ -31,12 +41,17 @@ const authMiddleware = (req, res, next) => {
 const requireRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required"
+      });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
+        success: false,
         message: "Access denied. Insufficient permissions.",
+        error: "INSUFFICIENT_PERMISSIONS"
       });
     }
 

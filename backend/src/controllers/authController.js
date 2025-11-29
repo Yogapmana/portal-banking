@@ -153,6 +153,58 @@ class AuthController {
   });
 
   /**
+   * Refresh access token
+   * @route POST /api/auth/refresh
+   */
+  refresh = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    // Get request context
+    const context = {
+      userAgent: req.get("User-Agent"),
+      ipAddress: req.ip || req.connection.remoteAddress,
+    };
+
+    const tokens = await this.authService.refreshToken(refreshToken, context);
+
+    res.json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: tokens,
+    });
+  });
+
+  /**
+   * Logout user
+   * @route POST /api/auth/logout
+   */
+  logout = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    await this.authService.logout(refreshToken);
+
+    res.json({
+      success: true,
+      message: "Logout successful",
+    });
+  });
+
+  /**
+   * Logout from all devices
+   * @route POST /api/auth/logout-all
+   */
+  logoutAll = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+
+    await this.authService.logoutAll(userId);
+
+    res.json({
+      success: true,
+      message: "Logged out from all devices",
+    });
+  });
+
+  /**
    * Public registration endpoint (disabled)
    * @route POST /api/auth/register
    */

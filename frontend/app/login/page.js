@@ -35,7 +35,7 @@ export default function LoginPage() {
       const response = await api.auth.login(email, password);
 
       if (response.success) {
-        login(response.data.user, response.data.token);
+        login(response.data.user, response.data.accessToken, response.data.refreshToken);
         router.push("/dashboard");
       } else {
         setError(response.message || "Login failed");

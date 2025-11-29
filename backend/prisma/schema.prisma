@@ -19,9 +19,31 @@ model User {
   // Relations
   assignedCustomers Customer[] @relation("CustomerAssignment")
   callLogs          CallLog[]  @relation("UserCallLogs")
+  refreshTokens     RefreshToken[] @relation("UserRefreshTokens")
 
   @@index([role])
   @@map("users")
+}
+
+// Model Refresh Token
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  userAgent String?  @db.Text @map("user_agent")
+  ipAddress String?  @map("ip_address")
+
+  // Relations
+  user User @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
 }
 
 enum Role {

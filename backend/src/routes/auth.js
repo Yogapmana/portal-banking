@@ -100,7 +100,12 @@ router.delete(
  * @desc    Change password
  * @access  Private
  */
-router.post("/change-password", authMiddleware, passwordChangeLimiter, authController.changePassword);
+router.post(
+  "/change-password",
+  authMiddleware,
+  passwordChangeLimiter,
+  authController.changePassword
+);
 
 /**
  * @route   GET /api/auth/sales-list
@@ -113,5 +118,26 @@ router.get(
   requireSalesManager,
   authController.getSalesList
 );
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token
+ * @access  Public (with valid refresh token)
+ */
+router.post("/refresh", authController.refresh);
+
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (revoke refresh token)
+ * @access  Public (with valid refresh token)
+ */
+router.post("/logout", authController.logout);
+
+/**
+ * @route   POST /api/auth/logout-all
+ * @desc    Logout from all devices
+ * @access  Private
+ */
+router.post("/logout-all", authMiddleware, authController.logoutAll);
 
 module.exports = router;
