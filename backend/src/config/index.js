@@ -15,6 +15,13 @@ const config = {
     url: process.env.DATABASE_URL,
   },
 
+  // Redis configuration (optional)
+  redis: {
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+    password: process.env.REDIS_PASSWORD,
+    keyPrefix: "banking:",
+  },
+
   // JWT configuration
   jwt: {
     secret: process.env.JWT_SECRET,

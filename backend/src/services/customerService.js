@@ -4,15 +4,39 @@ const {
   AuthorizationError,
 } = require("../middleware/errorHandler");
 const { config } = require("../config");
+const crypto = require("crypto");
 
 /**
  * Customer Service
- * Handles business logic for customer management
+ * Handles business logic for customer management with optional Redis caching
  */
 class CustomerService {
-  constructor(customerRepository, userRepository) {
+  constructor(customerRepository, userRepository, redisService = null) {
     this.customerRepository = customerRepository;
     this.userRepository = userRepository;
+    this.redis = redisService;
+  }
+
+  /**
+   * Generate cache key based on method and parameters
+   * @param {string} method - Method name
+   * @param {Object} params - Parameters
+   * @returns {string} Cache key
+   */
+  _generateCacheKey(method, params) {
+    const sortedParams = Object.keys(params || {})
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = params[key];
+        return acc;
+      }, {});
+
+    const hash = crypto
+      .createHash("md5")
+      .update(JSON.stringify(sortedParams))
+      .digest("hex");
+
+    return `customers:${method}:${hash}`;
   }
 
   /**
@@ -176,7 +200,8 @@ class CustomerService {
     const take = Math.min(parseInt(limit), config.pagination.maxLimit);
 
     // Build base where clause (without role-based filtering)
-    const { search, minScore, maxScore, job, marital, education, housing } = filters;
+    const { search, minScore, maxScore, job, marital, education, housing } =
+      filters;
     const where = {};
 
     // Search by name, phone number, or job
@@ -184,7 +209,7 @@ class CustomerService {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
         { phoneNumber: { contains: search, mode: "insensitive" } },
-        { job: { contains: search, mode: "insensitive" } }
+        { job: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -205,13 +230,14 @@ class CustomerService {
     const orderBy = this._buildOrderClause(sortBy, sortOrder);
 
     // Get customers and total count using the new method
-    const { customers, total } = await this.customerRepository.findManyWithoutCallLogs({
-      skip,
-      take,
-      where,
-      orderBy,
-      userId: user.role === "SALES" ? user.userId : null,
-    });
+    const { customers, total } =
+      await this.customerRepository.findManyWithoutCallLogs({
+        skip,
+        take,
+        where,
+        orderBy,
+        userId: user.role === "SALES" ? user.userId : null,
+      });
 
     // Build where clause for statistics (same logic as above)
     const statsWhere = { ...where };
@@ -248,6 +274,27 @@ class CustomerService {
    * @returns {Promise<Object>} Customer object
    */
   async getCustomerById(customerId, user) {
+    // Try cache first if Redis available
+    if (this.redis) {
+      const cacheKey = this._generateCacheKey("getCustomerById", {
+        customerId,
+      });
+      const cached = await this.redis.get(cacheKey);
+
+      if (cached) {
+        // Still need to check authorization
+        if (user.role === "SALES") {
+          if (cached.salesId !== null && cached.salesId !== user.userId) {
+            throw new AuthorizationError(
+              "Anda tidak memiliki akses ke customer ini"
+            );
+          }
+        }
+        return cached;
+      }
+    }
+
+    // Fetch from database
     const customer = await this.customerRepository.findById(customerId);
 
     if (!customer) {
@@ -263,6 +310,14 @@ class CustomerService {
       }
     }
 
+    // Cache the result
+    if (this.redis) {
+      const cacheKey = this._generateCacheKey("getCustomerById", {
+        customerId,
+      });
+      await this.redis.set(cacheKey, customer, "customer");
+    }
+
     return customer;
   }
 
@@ -271,6 +326,17 @@ class CustomerService {
    * @returns {Promise<Object>} Filter options
    */
   async getFilterOptions() {
+    // Try cache first
+    if (this.redis) {
+      const cacheKey = "customers:filterOptions";
+      return this.redis.getOrSet(
+        cacheKey,
+        () => this.customerRepository.getFilterOptions(),
+        "filterOptions"
+      );
+    }
+
+    // Fallback to direct query
     return this.customerRepository.getFilterOptions();
   }
 
@@ -306,7 +372,17 @@ class CustomerService {
     }
 
     // Assign customer
-    return this.customerRepository.assignToSales(customerId, salesId);
+    const result = await this.customerRepository.assignToSales(
+      customerId,
+      salesId
+    );
+
+    // Invalidate cache
+    if (this.redis) {
+      await this.redis.invalidateCustomer(customerId);
+    }
+
+    return result;
   }
 
   /**
@@ -330,7 +406,14 @@ class CustomerService {
     }
 
     // Unassign customer
-    return this.customerRepository.unassignFromSales(customerId);
+    const result = await this.customerRepository.unassignFromSales(customerId);
+
+    // Invalidate cache
+    if (this.redis) {
+      await this.redis.invalidateCustomer(customerId);
+    }
+
+    return result;
   }
 
   /**
@@ -410,7 +493,14 @@ class CustomerService {
       );
     }
 
-    return this.customerRepository.create(customerData);
+    const result = await this.customerRepository.create(customerData);
+
+    // Invalidate all customers cache since list changed
+    if (this.redis) {
+      await this.redis.invalidateAllCustomers();
+    }
+
+    return result;
   }
 
   /**
@@ -436,7 +526,14 @@ class CustomerService {
       }
     }
 
-    return this.customerRepository.update(customerId, updateData);
+    const result = await this.customerRepository.update(customerId, updateData);
+
+    // Invalidate cache
+    if (this.redis) {
+      await this.redis.invalidateCustomer(customerId);
+    }
+
+    return result;
   }
 
   /**
@@ -457,7 +554,15 @@ class CustomerService {
       throw new NotFoundError("Customer");
     }
 
-    return this.customerRepository.delete(customerId);
+    const result = await this.customerRepository.delete(customerId);
+
+    // Invalidate cache
+    if (this.redis) {
+      await this.redis.invalidateCustomer(customerId);
+      await this.redis.invalidateAllCustomers();
+    }
+
+    return result;
   }
 
   /**

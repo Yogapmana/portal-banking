@@ -9,6 +9,7 @@ const CallLogRepository = require("./repositories/callLogRepository");
 const AuthService = require("./services/authService");
 const CustomerService = require("./services/customerService");
 const CallLogService = require("./services/callLogService");
+const RedisService = require("./services/redisService");
 
 // Controllers
 const AuthController = require("./controllers/authController");
@@ -33,6 +34,9 @@ class Container {
     // Database Client (Singleton)
     this.dependencies.prismaClient = getPrismaClient();
 
+    // Redis Service (optional - graceful fallback if unavailable)
+    this.dependencies.redisService = new RedisService();
+
     // Repositories
     this.dependencies.userRepository = new UserRepository(
       this.dependencies.prismaClient
@@ -44,13 +48,14 @@ class Container {
       this.dependencies.prismaClient
     );
 
-    // Services
+    // Services with Redis support
     this.dependencies.authService = new AuthService(
       this.dependencies.userRepository
     );
     this.dependencies.customerService = new CustomerService(
       this.dependencies.customerRepository,
-      this.dependencies.userRepository
+      this.dependencies.userRepository,
+      this.dependencies.redisService
     );
     this.dependencies.callLogService = new CallLogService(
       this.dependencies.callLogRepository,

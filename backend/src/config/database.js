@@ -12,6 +12,12 @@ const getPrismaClient = () => {
     prismaInstance = new PrismaClient({
       log: config.server.env === "development" ? ["warn", "error"] : ["error"],
       errorFormat: config.server.env === "development" ? "pretty" : "minimal",
+      // Connection Pool Configuration
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
     });
 
     const handleShutdown = async (signal) => {

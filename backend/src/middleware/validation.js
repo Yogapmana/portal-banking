@@ -80,24 +80,51 @@ const schemas = {
   }),
 };
 
-// Sanitization function
+// Sanitization function with XSS protection
 const sanitizeInput = (input) => {
   if (typeof input === "string") {
     return input
       .trim()
       .replace(/\s+/g, " ") // Normalize whitespace
-      .replace(/[<>]/g, ""); // Remove potential HTML tags
+      .replace(/[<>'"]/g, "") // Remove potential XSS characters
+      .replace(/javascript:/gi, "") // Remove javascript: protocol
+      .replace(/on\w+\s*=/gi, ""); // Remove event handlers (onclick, onerror, etc)
   }
   return input;
 };
 
-// Sanitize all string values in an object
-const sanitizeObject = (obj) => {
-  const sanitized = {};
-  for (const [key, value] of Object.entries(obj)) {
-    sanitized[key] = sanitizeInput(value);
+// Deep sanitize - recursively sanitize nested objects and arrays
+const deepSanitize = (obj) => {
+  if (typeof obj === "string") {
+    return sanitizeInput(obj);
   }
-  return sanitized;
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepSanitize(item));
+  }
+
+  if (obj !== null && typeof obj === "object") {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Sanitize key to prevent prototype pollution
+      const safeKey = sanitizeInput(key);
+      if (
+        safeKey !== "__proto__" &&
+        safeKey !== "constructor" &&
+        safeKey !== "prototype"
+      ) {
+        sanitized[safeKey] = deepSanitize(value);
+      }
+    }
+    return sanitized;
+  }
+
+  return obj;
+};
+
+// Sanitize all string values in an object (legacy - use deepSanitize instead)
+const sanitizeObject = (obj) => {
+  return deepSanitize(obj);
 };
 
 // Validation middleware factory

@@ -17,24 +17,25 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  assignedCustomers Customer[] @relation("CustomerAssignment")
-  callLogs          CallLog[]  @relation("UserCallLogs")
+  assignedCustomers Customer[]     @relation("CustomerAssignment")
+  callLogs          CallLog[]      @relation("UserCallLogs")
   refreshTokens     RefreshToken[] @relation("UserRefreshTokens")
 
   @@index([role])
+  @@index([email, role]) // Composite index for auth queries
   @@map("users")
 }
 
 // Model Refresh Token
 model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int      @map("user_id")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  userId    Int       @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
   revokedAt DateTime? @map("revoked_at")
-  userAgent String?  @db.Text @map("user_agent")
-  ipAddress String?  @map("ip_address")
+  userAgent String?   @map("user_agent") @db.Text
+  ipAddress String?   @map("ip_address")
 
   // Relations
   user User @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
@@ -43,6 +44,8 @@ model RefreshToken {
   @@index([token])
   @@index([expiresAt])
   @@index([revokedAt])
+  @@index([userId, expiresAt]) // Composite for active tokens query
+  @@index([token, revokedAt]) // Composite for token validation
   @@map("refresh_tokens")
 }
 
@@ -90,10 +93,16 @@ model Customer {
   // Relations
   callLogs CallLog[] @relation("CustomerCallLogs")
 
+  // Indexes for common queries
   @@index([salesId])
   @@index([name])
   @@index([phoneNumber])
   @@index([score])
+  @@index([salesId, score]) // Composite for sales assignment + score filtering
+  @@index([job]) // For job filtering
+  @@index([marital]) // For marital status filtering
+  @@index([education]) // For education filtering
+  @@index([age, score]) // Composite for demographic queries
   @@map("customers")
 }
 
@@ -112,11 +121,14 @@ model CallLog {
   customer Customer @relation("CustomerCallLogs", fields: [customerId], references: [id], onDelete: Cascade)
   user     User     @relation("UserCallLogs", fields: [userId], references: [id], onDelete: Restrict)
 
-  // Indexes
+  // Indexes for common queries
   @@index([customerId])
   @@index([userId])
   @@index([status])
   @@index([callDate])
+  @@index([customerId, callDate]) // Composite for customer call history
+  @@index([userId, callDate]) // Composite for user activity tracking
+  @@index([status, callDate]) // Composite for status reports
   @@map("call_logs")
 }
 

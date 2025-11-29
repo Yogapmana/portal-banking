@@ -23,6 +23,25 @@ class CustomerRepository {
             role: true,
           },
         },
+        // Optimize: Only load recent call logs (last 10)
+        callLogs: {
+          select: {
+            id: true,
+            status: true,
+            notes: true,
+            callDate: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            callDate: "desc",
+          },
+          take: 10,
+        },
       },
     });
   }
@@ -89,7 +108,7 @@ class CustomerRepository {
 
     // Add condition to exclude customers with call logs
     customerWhere.callLogs = {
-      none: {}
+      none: {},
     };
 
     // If userId is provided (for non-admin users), only show assigned customers

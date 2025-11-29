@@ -1,10 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const compression = require("compression");
+const helmet = require("helmet");
 const { config, validateConfig } = require("./config");
 const { connectDatabase } = require("./config/database");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { apiLimiter } = require("./middleware/rateLimiter");
+const { sanitizeMiddleware } = require("./middleware/sanitize");
 
 // Import routes
 const authRoutes = require("./routes/auth");
@@ -15,12 +18,56 @@ const conversationGuideRoutes = require("./routes/conversationGuide");
 const app = express();
 
 /**
+ * Security middleware - Must be first
+ */
+// Helmet - Set security headers
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allow embedding for development
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin requests
+  })
+);
+
+// Trust proxy - Important for rate limiting and IP detection behind reverse proxy
+app.set("trust proxy", 1);
+
+/**
  * Apply middleware
  */
 app.use(cors(config.cors));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body parsing with size limits
+app.use(express.json({ limit: "10mb" })); // Limit JSON body size
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser()); // Parse cookies
+
+// Custom sanitization middleware (Express v5 compatible)
+// Prevents NoSQL injection, XSS, and prototype pollution
+app.use(sanitizeMiddleware());
+
+// Response compression - compress responses larger than 1kb
+app.use(
+  compression({
+    threshold: 1024, // Only compress responses larger than 1kb
+    level: 6, // Compression level (0-9, 6 is default)
+    filter: (req, res) => {
+      // Don't compress if client doesn't support it
+      if (req.headers["x-no-compression"]) {
+        return false;
+      }
+      // Use compression for all requests
+      return compression.filter(req, res);
+    },
+  })
+);
 
 /**
  * Apply general API rate limiting to all /api routes
@@ -79,6 +126,13 @@ const startServer = async () => {
 
     // Connect to database
     await connectDatabase();
+
+    // Initialize Redis cache (optional - graceful fallback)
+    const container = require("./container");
+    const redisService = container.get("redisService");
+    if (redisService) {
+      await redisService.connect();
+    }
 
     // Start listening
     app.listen(config.server.port, () => {
