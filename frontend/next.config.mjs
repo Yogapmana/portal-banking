@@ -7,7 +7,7 @@ const nextConfig = {
   output: 'standalone',
 
   // Enable experimental features for better performance
-  swcMinify: true,
+  // swcMinify: true,
 
   // Optimize images
   images: {
