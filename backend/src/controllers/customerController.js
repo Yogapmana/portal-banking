@@ -24,7 +24,10 @@ class CustomerController {
    * @route GET /api/customers/pending
    */
   getPendingCustomers = asyncHandler(async (req, res) => {
-    const result = await this.customerService.getPendingCustomers(req.query, req.user);
+    const result = await this.customerService.getPendingCustomers(
+      req.query,
+      req.user
+    );
 
     res.json(result);
   });

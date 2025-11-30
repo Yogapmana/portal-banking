@@ -4,12 +4,10 @@ const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return res
-      .status(401)
-      .json({
-        success: false,
-        message: "Access denied. No token provided."
-      });
+    return res.status(401).json({
+      success: false,
+      message: "Access denied. No token provided.",
+    });
   }
 
   try {
@@ -32,7 +30,7 @@ const authMiddleware = (req, res, next) => {
     return res.status(status).json({
       success: false,
       message,
-      error: "AUTH_ERROR"
+      error: "AUTH_ERROR",
     });
   }
 };
@@ -43,7 +41,7 @@ const requireRole = (allowedRoles) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required"
+        message: "Authentication required",
       });
     }
 
@@ -51,7 +49,7 @@ const requireRole = (allowedRoles) => {
       return res.status(403).json({
         success: false,
         message: "Access denied. Insufficient permissions.",
-        error: "INSUFFICIENT_PERMISSIONS"
+        error: "INSUFFICIENT_PERMISSIONS",
       });
     }
 

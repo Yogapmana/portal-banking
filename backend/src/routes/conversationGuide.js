@@ -14,6 +14,10 @@ router.use(authMiddleware);
  * @desc Get AI-generated conversation guide for a customer
  * @access SALES, SALES_MANAGER
  */
-router.get("/:customerId", aiLimiter, conversationGuideController.getConversationGuide);
+router.get(
+  "/:customerId",
+  aiLimiter,
+  conversationGuideController.getConversationGuide
+);
 
 module.exports = router;
