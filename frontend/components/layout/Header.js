@@ -40,7 +40,7 @@ export default function Header() {
           </h1>
         </div>
 
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
+        {/* <div className="hidden md:flex flex-1 max-w-xl mx-8">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -49,7 +49,7 @@ export default function Header() {
               className="w-full h-10 pl-10 pr-4 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#56B9F1] focus:bg-white transition-all"
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-3">
           <DropdownMenu>

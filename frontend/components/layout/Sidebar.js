@@ -31,9 +31,10 @@ export default function Sidebar() {
       icon: BarChart2,
       roles: ["SALES_MANAGER", "SALES"],
     },
+    // May not be needed, since it's only shown when path is customers/id
     {
       name: "Customers",
-      href: "/customers",
+      href: "",
       icon: Users2,
       roles: ["ADMIN", "SALES_MANAGER", "SALES"],
     },
@@ -46,6 +47,9 @@ export default function Sidebar() {
   ];
 
   const filteredNavigation = navigation.filter((item) =>
+    // disabling customers icon when not in usual path
+    item.name === "Customers" ?
+    pathname.includes('customer') :
     item.roles.includes(user?.role)
   );
 
