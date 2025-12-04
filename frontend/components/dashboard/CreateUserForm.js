@@ -80,13 +80,13 @@ export default function CreateUserForm({ onSuccess }) {
             <Input
               id="password"
               type="password"
-              placeholder="Minimal 6 karakter"
+              placeholder="Minimal 8 karakter"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               required
-              minLength={6}
+              minLength={8}
               className="rounded-xl border-gray-200 pl-10 h-12 focus:border-[PRIMARY_COLOR] focus:ring-2 focus:ring-[#56B9F133] transition-all"
             />
           </div>
