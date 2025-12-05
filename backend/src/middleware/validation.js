@@ -156,7 +156,8 @@ const validate = (schemaName) => {
 
         return res.status(400).json({
           success: false,
-          error: "Validation Error",
+          // Crude, but able to show the error more clearly
+          error: validationErrors[0].message,
           details: validationErrors,
         });
       }

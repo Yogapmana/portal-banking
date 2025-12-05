@@ -255,6 +255,7 @@ createdb portal_banking
 
 ```bash
 cd backend
+npx prisma generate
 npx prisma migrate deploy
 ```
 

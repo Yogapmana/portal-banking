@@ -14,6 +14,8 @@ import {
 import { Edit, Save, X, Loader2, ExternalLink, Phone } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 
+const PRIMARY_COLOR = "#56B9F1";
+
 export default function CallLogTableRow({ log, onUpdate }) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -25,23 +27,16 @@ export default function CallLogTableRow({ log, onUpdate }) {
 
   const handleEdit = () => {
     setIsEditing(true);
-    setEditForm({
-      status: log.status,
-      notes: log.notes || "",
-    });
+    setEditForm({ status: log.status, notes: log.notes || "" });
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditForm({
-      status: log.status,
-      notes: log.notes || "",
-    });
+    setEditForm({ status: log.status, notes: log.notes || "" });
   };
 
   const handleSave = async () => {
     if (!editForm.status) return;
-
     setLoading(true);
     try {
       await onUpdate(log.id, editForm);
@@ -82,13 +77,13 @@ export default function CallLogTableRow({ log, onUpdate }) {
   };
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors duration-150">
+    <TableRow className="border-b border-gray-200 hover:bg-[#f0f8ff] transition-colors duration-150 rounded-lg">
       <TableCell className="py-4 pl-6">
         <div className="flex flex-col">
           <span className="font-medium text-gray-900">
             {formatDate(log.callDate)}
           </span>
-          <span className="text-xs text-muted-foreground mt-0.5">
+          <span className="text-xs text-gray-400 mt-0.5">
             {new Date(log.callDate).toLocaleDateString("id-ID", {
               weekday: "long",
             })}
@@ -99,20 +94,23 @@ export default function CallLogTableRow({ log, onUpdate }) {
       <TableCell className="py-4 pl-6">
         <button
           onClick={handleViewCustomer}
-          className="flex items-center gap-3 text-left hover:opacity-80 transition-all group w-full"
+          className="flex items-center gap-3 text-left hover:bg-[#e6f5fc] transition-all rounded-lg p-1 w-full"
           disabled={!log.customerId}
         >
-          <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#034694] to-[#0575E6] flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0 group-hover:scale-105 transition-transform">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm shadow"
+            style={{ backgroundColor: PRIMARY_COLOR }}
+          >
             {(log.customer?.name || "?").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 flex items-center gap-1.5 truncate">
               {log.customer?.name || "Unknown"}
               {log.customerId && (
-                <ExternalLink className="h-3.5 w-3.5 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ExternalLink className="h-3.5 w-3.5 text-[#56B9F1] opacity-0 group-hover:opacity-100 transition-opacity" />
               )}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
               <Phone className="h-3 w-3" />
               {log.customer?.phoneNumber || "N/A"}
             </p>
@@ -128,71 +126,59 @@ export default function CallLogTableRow({ log, onUpdate }) {
               setEditForm({ ...editForm, status: value })
             }
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 border-gray-300 focus:border-[#56B9F1] focus:ring-1 focus:ring-[#56B9F1]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="INTERESTED" color="text-green-700">
-                Tertarik
-              </SelectItem>
-              <SelectItem value="NOT_INTERESTED" color="text-red-700">
-                Tidak Tertarik
-              </SelectItem>
-              <SelectItem value="NO_ANSWER" color="text-yellow-700">
-                Tidak Angkat
-              </SelectItem>
-              <SelectItem value="WRONG_NUMBER" color="text-orange-700">
-                Nomor Salah
-              </SelectItem>
-              <SelectItem value="CALLBACK" color="text-blue-700">
-                Minta Dihubungi Lagi
-              </SelectItem>
-              <SelectItem value="COMPLETED" color="text-gray-700">
-                Selesai
-              </SelectItem>
+              <SelectItem value="TERTARIK">Tertarik</SelectItem>
+              <SelectItem value="TIDAK_TERTARIK">Tidak Tertarik</SelectItem>
+              <SelectItem value="TIDAK_TERSEDIA">Tidak Angkat</SelectItem>
+              <SelectItem value="SALAH_NOMOR">Nomor Salah</SelectItem>
+              <SelectItem value="BERMINAT">Minta Dihubungi Lagi</SelectItem>
+              <SelectItem value="SELESAI">Selesai</SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <StatusBadge status={log.status} className="font-medium" />
+          <StatusBadge
+            status={log.status}
+            className="font-medium"
+            color={PRIMARY_COLOR}
+          />
         )}
       </TableCell>
 
       <TableCell className="py-4 max-w-md pl-6">
         {isEditing ? (
           <textarea
-            className="w-full p-3 border-2 border-blue-200 rounded-lg text-sm resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none focus:border-[#56B9F1] focus:ring-1 focus:ring-[#56B9F1] transition-all"
             rows={3}
             value={editForm.notes}
             onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                notes: e.target.value,
-              })
+              setEditForm({ ...editForm, notes: e.target.value })
             }
             placeholder="Tulis catatan panggilan..."
           />
         ) : (
-          <div className="space-y-1">
-            <p
-              className="text-sm text-gray-700 line-clamp-2"
-              title={log.notes || "-"}
-            >
-              {log.notes || (
-                <span className="text-muted-foreground italic">
-                  Tidak ada catatan
-                </span>
-              )}
-            </p>
-          </div>
+          <p
+            className="text-sm text-gray-700 line-clamp-2"
+            title={log.notes || "-"}
+          >
+            {log.notes || (
+              <span className="text-gray-400 italic">Tidak ada catatan</span>
+            )}
+          </p>
         )}
       </TableCell>
 
       <TableCell className="py-4 pl-6">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-semibold text-xs">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-xs"
+            style={{ backgroundColor: PRIMARY_COLOR }}
+          >
             {(log.user?.email || "?").charAt(0).toUpperCase()}
           </div>
-          <p className="text-sm text-gray-700 font-medium">
+          <p className="text-sm text-gray-900 font-medium">
             {log.user?.email || "N/A"}
           </p>
         </div>
@@ -205,7 +191,7 @@ export default function CallLogTableRow({ log, onUpdate }) {
               size="sm"
               onClick={handleSave}
               disabled={loading}
-              className="hover:bg-primary hover:text-primary-foreground"
+              style={{ backgroundColor: PRIMARY_COLOR, color: "#fff" }}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -227,7 +213,7 @@ export default function CallLogTableRow({ log, onUpdate }) {
             size="sm"
             variant="ghost"
             onClick={handleEdit}
-            className="hover:bg-muted"
+            style={{ color: PRIMARY_COLOR }}
           >
             <Edit className="h-4 w-4" />
           </Button>

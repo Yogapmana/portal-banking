@@ -12,7 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Loader2 } from "lucide-react";
+import { UserPlus, Loader2, Mail, Lock } from "lucide-react";
+
+const PRIMARY_COLOR = "#56B9F1";
+const PRIMARY_COLOR_DARK = "#0284C7";
 
 export default function CreateUserForm({ onSuccess }) {
   const [formData, setFormData] = useState({
@@ -43,13 +46,18 @@ export default function CreateUserForm({ onSuccess }) {
   };
 
   return (
-    <Card className="border-border/50 shadow-elevated">
+    <Card
+      className="border-0 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300"
+      style={{ borderColor: PRIMARY_COLOR + "33" }}
+    >
       <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email */}
+          <div className="space-y-1 relative">
+            <Label htmlFor="email" className="font-semibold text-gray-700">
               Email <span className="text-red-500">*</span>
             </Label>
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               id="email"
               type="email"
@@ -59,35 +67,45 @@ export default function CreateUserForm({ onSuccess }) {
                 setFormData({ ...formData, email: e.target.value })
               }
               required
+              className="rounded-xl border-gray-200 pl-10 h-12 focus:border-[PRIMARY_COLOR] focus:ring-2 focus:ring-[#56B9F133] transition-all"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">
+          {/* Password */}
+          <div className="space-y-1 relative">
+            <Label htmlFor="password" className="font-semibold text-gray-700">
               Password <span className="text-red-500">*</span>
             </Label>
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               id="password"
               type="password"
-              placeholder="Minimal 6 karakter"
+              placeholder="Minimal 8 karakter"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               required
-              minLength={6}
+              minLength={8}
+              className="rounded-xl border-gray-200 pl-10 h-12 focus:border-[PRIMARY_COLOR] focus:ring-2 focus:ring-[#56B9F133] transition-all"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
+          {/* Role */}
+          <div className="space-y-1">
+            <Label htmlFor="role" className="font-semibold text-gray-700">
+              Role
+            </Label>
             <Select
               value={formData.role}
               onValueChange={(value) =>
                 setFormData({ ...formData, role: value })
               }
             >
-              <SelectTrigger id="role">
+              <SelectTrigger
+                id="role"
+                className="rounded-xl border-gray-200 h-12 focus:border-[PRIMARY_COLOR] focus:ring-2 focus:ring-[#56B9F133] transition-all"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -98,25 +116,27 @@ export default function CreateUserForm({ onSuccess }) {
             </Select>
           </div>
 
+          {/* Error Message */}
           {error && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
               {error}
             </div>
           )}
 
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#034694] hover:bg-[#023a7a]"
+            className="w-full h-12 rounded-xl bg-[#56B9F1] text-white font-semibold shadow-md hover:shadow-lg hover:bg-[#0284C7] transition-all duration-300 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
                 Membuat User...
               </>
             ) : (
               <>
-                <UserPlus className="mr-2 h-4 w-4" />
+                <UserPlus className="h-4 w-4" />
                 Buat User
               </>
             )}

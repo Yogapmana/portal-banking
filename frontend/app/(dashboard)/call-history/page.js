@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Phone, Users, Award, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Phone,
+  Users,
+  Award,
+  AlertCircle,
+  Loader2,
+  TrendingUp,
+  Calendar,
+  Filter,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -94,113 +103,230 @@ export default function CallHistoryPage() {
   };
 
   return (
-    <div className="space-y-6 fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold bg-linear-to-r from-[#034694] to-[#0575E6] bg-clip-text text-transparent">
-          Riwayat Panggilan
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
-          Daftar semua panggilan yang telah dilakukan
-        </p>
+    <div className="space-y-8 fade-in min-h-screen bg-linear-to-b from-gray-50/50 to-white p-4 md:p-6">
+      {/* Header dengan gradien elegan */}
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#56B9F1] to-[#3A8FD9] p-6 md:p-8 shadow-lg">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-10"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-8"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Phone className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white">
+              Riwayat Panggilan
+            </h1>
+          </div>
+          <p className="text-white/90 text-base md:text-lg max-w-2xl">
+            Pantau dan kelola semua catatan penawaran
+          </p>
+
+          {/* Quick Stats Bar */}
+          <div className="flex flex-wrap items-center gap-4 mt-6 pt-6 border-t border-white/20">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-white/80" />
+              <span className="text-white/90 text-sm">
+                {new Date().toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+            <div className="hidden md:block w-px h-4 bg-white/30"></div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-white/80" />
+              <span className="text-white/90 text-sm">
+                {totalItems.toLocaleString()} total panggilan
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Statistics Cards dengan desain modern */}
+      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <StatisticsCard
           title="Total Panggilan"
           value={statistics?.totalCalls?.toLocaleString() || "0"}
           icon={Phone}
-          description="Total call records"
-          className="fade-in"
+          description="Semua catatan panggilan"
+          iconBgColor="bg-gradient-to-br from-[#56B9F1] to-[#3A8FD9]"
+          iconColor="text-white"
+          className="fade-in shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100"
+          trend={statistics?.trends?.totalCalls}
         />
         <StatisticsCard
           title="Tertarik"
           value={statistics?.byStatus?.INTERESTED?.toLocaleString() || "0"}
           icon={Users}
-          description="Interested customers"
-          className="fade-in"
+          description="Nasabah tertarik"
+          iconBgColor="bg-gradient-to-br from-emerald-500 to-emerald-600"
+          iconColor="text-white"
+          className="fade-in shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100"
+          trend={statistics?.trends?.interested}
         />
         <StatisticsCard
           title="Selesai"
           value={statistics?.byStatus?.COMPLETED?.toLocaleString() || "0"}
           icon={Award}
-          description="Completed transactions"
-          className="fade-in sm:col-span-2 lg:col-span-1"
+          description="Transaksi selesai"
+          iconBgColor="bg-gradient-to-br from-purple-500 to-purple-600"
+          iconColor="text-white"
+          className="fade-in shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100"
+          trend={statistics?.trends?.completed}
         />
       </div>
 
-      {/* Filters */}
-      <CallLogFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={handleResetFilters}
-      />
+      {/* Filters Section */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#56B9F1] rounded-lg">
+                <Filter className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Filter & Pencarian
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Saring data berdasarkan kriteria tertentu
+                </p>
+              </div>
+            </div>
+            <div className="text-sm text-gray-500">
+              {totalItems > 0 && `${totalItems} data ditemukan`}
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <CallLogFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onReset={handleResetFilters}
+          />
+        </div>
+      </div>
 
-      {/* Table */}
-      {/* Call Logs Table */}
-      <Card className="border-0 shadow-lg">
-        <CardContent className="p-6">
+      {/* Main Table Section */}
+      <div className="rounded-xl overflow-hidden border border-gray-200 shadow-lg">
+        <div className="bg-linear-to-r from-[#56B9F1]/10 to-[#3A8FD9]/5 border-b border-gray-100 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Daftar Panggilan
+              </h2>
+              <p className="text-sm text-gray-600">
+                Detail lengkap semua riwayat panggilan
+              </p>
+            </div>
+            <div className="px-3 py-1.5 bg-[#56B9F1] rounded-lg text-white text-sm font-medium">
+              Halaman {page} dari {totalPages}
+            </div>
+          </div>
+        </div>
+
+        <CardContent className="p-0">
           {error && (
-            <div className="flex items-center gap-2 rounded-md bg-red-50 p-4 mb-4 text-sm text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              {error}
+            <div className="m-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-700 backdrop-blur-sm">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <div>
+                <p className="font-medium">Terjadi Kesalahan</p>
+                <p className="text-red-600">{error}</p>
+              </div>
             </div>
           )}
 
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="text-center">
-                <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  Memuat riwayat panggilan...
-                </p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full border-4 border-gray-200"></div>
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#56B9F1]" />
+                </div>
               </div>
+              <p className="mt-4 text-lg font-medium text-gray-700">
+                Memuat riwayat panggilan...
+              </p>
+              <p className="text-sm text-gray-500">Harap tunggu sebentar</p>
             </div>
           ) : callLogs.length === 0 ? (
-            <div className="py-16 text-center">
-              <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-                <Phone className="h-8 w-8 text-muted-foreground" />
+            <div className="py-20 text-center">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-gray-100 to-gray-200">
+                <Phone className="h-10 w-10 text-gray-400" />
               </div>
-              <p className="text-lg font-medium text-foreground mb-2">
+              <p className="text-xl font-semibold text-gray-700 mb-2">
                 Belum ada riwayat panggilan
               </p>
-              <p className="text-sm text-muted-foreground">
-                Riwayat panggilan akan muncul di sini setelah Anda melakukan
-                panggilan
+              <p className="text-gray-500 max-w-md mx-auto">
+                Data akan muncul di sini setelah Anda melakukan panggilan atau
+                sesuaikan filter untuk menemukan data yang diinginkan.
               </p>
             </div>
           ) : (
             <>
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              <div className="overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100 hover:from-blue-50 hover:to-indigo-50">
-                        <TableHead className="font-bold text-gray-700 h-12 pl-6">
-                          <div className="flex items-center gap-2">
-                            <div className="w-1 h-4 bg-blue-600 rounded"></div>
-                            Waktu Panggilan
+                      <TableRow className="bg-linear-to-r from-[#56B9F1]/5 to-[#3A8FD9]/5 hover:bg-linear-to-r hover:from-[#56B9F1]/10 hover:to-[#3A8FD9]/10">
+                        <TableHead className="font-bold text-gray-700 h-14 pl-8 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-6 bg-linear-to-b from-[#56B9F1] to-[#3A8FD9] rounded-full"></div>
+                            <div>
+                              <div className="font-bold">Waktu Panggilan</div>
+                              <div className="text-xs font-normal text-gray-500">
+                                Tanggal & Jam
+                              </div>
+                            </div>
                           </div>
                         </TableHead>
-                        <TableHead className="font-bold text-gray-700 pl-6">
-                          Informasi Nasabah
+                        <TableHead className="font-bold text-gray-700 pl-8 py-3">
+                          <div>
+                            <div className="font-bold">Informasi Nasabah</div>
+                            <div className="text-xs font-normal text-gray-500">
+                              Nama & Kontak
+                            </div>
+                          </div>
                         </TableHead>
-                        <TableHead className="font-bold text-gray-700 pl-6">
-                          Status
+                        <TableHead className="font-bold text-gray-700 pl-8 py-3">
+                          <div>
+                            <div className="font-bold">Status</div>
+                            <div className="text-xs font-normal text-gray-500">
+                              Hasil Panggilan
+                            </div>
+                          </div>
                         </TableHead>
-                        <TableHead className="font-bold text-gray-700 pl-6">
-                          Catatan
+                        <TableHead className="font-bold text-gray-700 pl-8 py-3">
+                          <div>
+                            <div className="font-bold">Catatan</div>
+                            <div className="text-xs font-normal text-gray-500">
+                              Ringkasan percakapan
+                            </div>
+                          </div>
                         </TableHead>
-                        <TableHead className="font-bold text-gray-700 pl-6">
-                          Penanggung Jawab
+                        <TableHead className="font-bold text-gray-700 pl-8 py-3">
+                          <div>
+                            <div className="font-bold">Penanggung Jawab</div>
+                            <div className="text-xs font-normal text-gray-500">
+                              Agent/PIC
+                            </div>
+                          </div>
                         </TableHead>
-                        <TableHead className="font-bold text-gray-700 text-right pr-6">
-                          Aksi
+                        <TableHead className="font-bold text-gray-700 text-right pr-8 py-3">
+                          <div>
+                            <div className="font-bold">Aksi</div>
+                            <div className="text-xs font-normal text-gray-500">
+                              Edit/Update
+                            </div>
+                          </div>
                         </TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody className="divide-y divide-gray-100">
                       {callLogs.map((log, index) => (
                         <CallLogTableRow
                           key={log.id}
@@ -214,8 +340,8 @@ export default function CallHistoryPage() {
                 </div>
               </div>
 
-              {/* Pagination */}
-              <div className="mt-4">
+              {/* Pagination dengan style baru */}
+              <div className="border-t border-gray-100 px-6 py-5 bg-linear-to-r from-gray-50/50 to-white">
                 <PaginationControls
                   currentPage={page}
                   totalPages={totalPages}
@@ -227,7 +353,18 @@ export default function CallHistoryPage() {
             </>
           )}
         </CardContent>
-      </Card>
+      </div>
+
+      {/* Footer Note */}
+      <div className="text-center py-6 border-t border-gray-100">
+        <p className="text-sm text-gray-500">
+          Data diperbarui secara real-time • Terakhir diperbarui:{" "}
+          {new Date().toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
+      </div>
     </div>
   );
 }
