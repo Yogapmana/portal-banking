@@ -138,7 +138,7 @@ export default function CustomerFilters({ filters, onFilterChange }) {
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Zap className="h-3 w-3" />
-              <span>Tekan Enter untuk mencari atau klik Terapkan</span>
+              <span>Tekan Enter atau klik Terapkan untuk mencari</span>
             </div>
 
             {/* Active Filters Badge */}
@@ -166,7 +166,7 @@ export default function CustomerFilters({ filters, onFilterChange }) {
 
         {/* Advanced Filters Section */}
         {showFilters && (
-          <div className="space-y-6 animate-in fade-in-50 slide-in-from-top-2 duration-300 border-t border-gray-100 pt-6">
+          <div className="space-y-6 animate-in fade-in-50 slide-in-from-top-2 animation-out fade-out-50 slide-out-to-top-2 duration-300 border-t border-gray-100 pt-6">
             {/* Filter Categories Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {/* Score Range */}

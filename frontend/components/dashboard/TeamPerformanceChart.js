@@ -53,9 +53,6 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
       )
     : [];
 
-  console.log(teamStats.statusBreakdown);
-  console.log(statusData);
-
   const performersData =
     topPerformers?.slice(0, 10).map((p, i) => ({
       name:

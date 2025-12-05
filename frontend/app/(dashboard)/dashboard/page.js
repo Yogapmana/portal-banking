@@ -224,10 +224,10 @@ export default function DashboardPage() {
       {/* Filters Section dengan desain elegant */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/50 to-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between transition-all">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-linear-to-br from-[#56B9F1] to-blue-500 rounded-lg shadow-sm">
-                <Filter className="h-5 w-5 text-white" />
+                <Filter className="h-5 w-5 text-white transition-all" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
