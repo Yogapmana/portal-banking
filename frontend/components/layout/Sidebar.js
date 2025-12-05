@@ -65,7 +65,7 @@ export default function Sidebar() {
       <aside
         className={cn(
           "fixed lg:relative flex flex-col transition-all duration-300 z-50 h-full border-r border-blue-300",
-          "bg-[#56B9F1] rounded-r-[40px]",
+          "bg-[#56B9F1] rounded-r-[20px]",
           "lg:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
           isCollapsed ? "lg:w-16 w-64" : "lg:w-64 w-64"
@@ -107,14 +107,14 @@ export default function Sidebar() {
                     className={cn(
                       "transition-all",
                       isActive ? "text-black" : "text-white",
-                      isCollapsed ? "h-7 w-7 mx-auto" : "h-6 w-6"
+                      isCollapsed ? "h-7 w-7" : "h-7 w-7"
                     )}
                   />
 
                   {!isCollapsed && (
                     <span
                       className={cn(
-                        "text-sm font-medium hidden lg:block",
+                        "text-base font-medium hidden lg:block transition-all",
                         isActive ? "text-black" : "text-white"
                       )}
                     >
@@ -124,7 +124,7 @@ export default function Sidebar() {
 
                   <span
                     className={cn(
-                      "text-sm font-medium block lg:hidden",
+                      "text-base font-medium block lg:hidden transition-all translate-x-0",
                       isActive ? "text-black" : "text-white"
                     )}
                   >

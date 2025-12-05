@@ -48,7 +48,7 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
         ([status, value]) => ({
           name: status.replace(/_/g, " "),
           value,
-          color: STATUS_COLORS[status] || "#6b7280",
+          color: STATUS_COLORS.status || "#6b7280",
         })
       )
     : [];
