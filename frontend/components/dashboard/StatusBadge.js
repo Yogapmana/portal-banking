@@ -1,35 +1,35 @@
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_CONFIG = {
-  INTERESTED: {
+  TERTARIK: {
     label: "Tertarik",
     variant: "default",
     className: "bg-green-100 text-green-700 border-green-200",
   },
-  NOT_INTERESTED: {
+  TIDAK_TERTARIK: {
     label: "Tidak Tertarik",
     variant: "destructive",
     className: "bg-red-100 text-red-700 border-red-200",
   },
-  NO_ANSWER: {
+  TIDAK_TERSEDIA: {
     label: "Tidak Diangkat",
     variant: "secondary",
     className: "bg-gray-100 text-gray-700 border-gray-200",
   },
-  WRONG_NUMBER: {
+  SALAH_NOMOR: {
     label: "Nomor Salah",
     variant: "outline",
     className: "bg-orange-100 text-orange-700 border-orange-200",
   },
-  CALLBACK: {
+  BERMINAT: {
     label: "Minta Callback",
     variant: "outline",
     className: "bg-blue-100 text-blue-700 border-blue-200",
   },
-  COMPLETED: {
+  SELESAI: {
     label: "Selesai",
     variant: "default",
-    className: "bg-blue-100 text-blue-800 border-blue-200",
+    className: "bg-purple-100 text-purple-800 border-purple-200",
   },
 };
 

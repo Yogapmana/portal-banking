@@ -25,12 +25,12 @@ import { useState } from "react";
 
 const PRIMARY_COLOR = "#56B9F1";
 const STATUS_COLORS = {
-  BERMINAT: "#10b981",
-  TERTARIK: "#3b82f6",
-  TIDAK_TERSEDIA: "#ef4444",
-  TERTUNDA: "#f59e0b",
+  TERTARIK: "#10b981",
+  TIDAK_TERTARIK: "#ef4444",
+  TIDAK_TERSEDIA: "#6b7280",
+  SALAH_NOMOR: "#f59e0b",
+  BERMINAT: "#3b82f6",
   SELESAI: "#8b5cf6",
-  GAGAL: "#6b7280",
 };
 
 const CHART_TYPES = {
@@ -48,10 +48,13 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
         ([status, value]) => ({
           name: status.replace(/_/g, " "),
           value,
-          color: STATUS_COLORS.status || "#6b7280",
+          color: STATUS_COLORS[status] || "#6b7280",
         })
       )
     : [];
+
+  console.log(teamStats.statusBreakdown);
+  console.log(statusData);
 
   const performersData =
     topPerformers?.slice(0, 10).map((p, i) => ({
@@ -175,7 +178,7 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
     <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border-0">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <CardTitle className="flex items-center gap-2 text-foreground text-lg font-semibold">
-          <BarChart3 className="h-5 w-5 text-[#034694]" />
+          <BarChart3 className="h-5 w-5 text-[#56B9F1]" />
           Team Performance
         </CardTitle>
         <div className="flex gap-2 flex-wrap">

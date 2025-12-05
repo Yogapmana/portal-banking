@@ -130,12 +130,12 @@ export default function CallLogTableRow({ log, onUpdate }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="INTERESTED">Tertarik</SelectItem>
-              <SelectItem value="NOT_INTERESTED">Tidak Tertarik</SelectItem>
-              <SelectItem value="NO_ANSWER">Tidak Angkat</SelectItem>
-              <SelectItem value="WRONG_NUMBER">Nomor Salah</SelectItem>
-              <SelectItem value="CALLBACK">Minta Dihubungi Lagi</SelectItem>
-              <SelectItem value="COMPLETED">Selesai</SelectItem>
+              <SelectItem value="TERTARIK">Tertarik</SelectItem>
+              <SelectItem value="TIDAK_TERTARIK">Tidak Tertarik</SelectItem>
+              <SelectItem value="TIDAK_TERSEDIA">Tidak Angkat</SelectItem>
+              <SelectItem value="SALAH_NOMOR">Nomor Salah</SelectItem>
+              <SelectItem value="BERMINAT">Minta Dihubungi Lagi</SelectItem>
+              <SelectItem value="SELESAI">Selesai</SelectItem>
             </SelectContent>
           </Select>
         ) : (

@@ -16,11 +16,11 @@ import { Phone, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 
 const CALL_STATUS_OPTIONS = [
-  { value: "INTERESTED", label: "Tertarik", color: "text-green-700" },
-  { value: "NOT_INTERESTED", label: "Tidak Tertarik", color: "text-red-700" },
-  { value: "NO_ANSWER", label: "Tidak Diangkat", color: "text-gray-700" },
-  { value: "WRONG_NUMBER", label: "Nomor Salah", color: "text-orange-700" },
-  { value: "CALLBACK", label: "Minta Callback", color: "text-blue-700" },
+  { value: "TERTARIK", label: "Tertarik", color: "text-green-700" },
+  { value: "TIDAK_TERTARIK", label: "Tidak Tertarik", color: "text-red-700" },
+  { value: "TIDAK_TERSEDIA", label: "Tidak Diangkat", color: "text-gray-700" },
+  { value: "SALAH_NOMOR", label: "Nomor Salah", color: "text-orange-700" },
+  { value: "BERMINAT", label: "Minta Callback", color: "text-blue-700" },
 ];
 
 export default function CallLogForm({ customerId, onSuccess }) {
