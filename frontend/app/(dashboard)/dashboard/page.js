@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,20 +20,55 @@ import { TableSkeleton } from "@/components/ui/skeleton";
 
 const fetcher = (params) => api.customers.getPending(params).then((res) => res);
 
+const STORAGE_KEY = "dashboard_filters_state";
+
+// Load saved filters from sessionStorage
+const loadSavedFilters = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("Error loading saved filters:", error);
+    return null;
+  }
+};
+
+// Save filters to sessionStorage
+const saveFilters = (filters) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+  } catch (error) {
+    console.error("Error saving filters:", error);
+  }
+};
+
 export default function DashboardPage() {
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 20,
-    search: "",
-    minScore: "",
-    maxScore: "",
-    job: "",
-    marital: "",
-    education: "",
-    housing: "",
-    sortBy: "score",
-    sortOrder: "desc",
+  const [filters, setFilters] = useState(() => {
+    // Initialize with saved filters or defaults
+    const saved = loadSavedFilters();
+    return (
+      saved || {
+        page: 1,
+        limit: 20,
+        search: "",
+        minScore: "",
+        maxScore: "",
+        job: "",
+        marital: "",
+        education: "",
+        housing: "",
+        sortBy: "score",
+        sortOrder: "desc",
+      }
+    );
   });
+
+  // Save filters whenever they change
+  useEffect(() => {
+    saveFilters(filters);
+  }, [filters]);
 
   const { data, error, isLoading, mutate } = useSWR(
     ["customers", filters],
@@ -48,6 +83,27 @@ export default function DashboardPage() {
     setFilters({ ...filters, ...newFilters, page: 1 });
   const handlePageChange = (newPage) =>
     setFilters({ ...filters, page: newPage });
+
+  const handleResetFilters = () => {
+    const defaultFilters = {
+      page: 1,
+      limit: 20,
+      search: "",
+      minScore: "",
+      maxScore: "",
+      job: "",
+      marital: "",
+      education: "",
+      housing: "",
+      sortBy: "score",
+      sortOrder: "desc",
+    };
+    setFilters(defaultFilters);
+    // Clear from sessionStorage
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  };
 
   const stats = data?.stats || { totalCustomers: 0, avgScore: 0, maxScore: 0 };
   const pagination = data?.pagination || {
@@ -97,15 +153,28 @@ export default function DashboardPage() {
           </div>
 
           {/* Action button */}
-          <button
-            onClick={() => mutate()}
-            className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-[#56B9F1] hover:shadow-md transition-all duration-300"
-          >
-            <RefreshCw className="h-4 w-4 text-gray-500 group-hover:text-[#56B9F1] group-hover:rotate-180 transition-all duration-500" />
-            <span className="font-medium text-gray-700 group-hover:text-[#56B9F1]">
-              Refresh Data
-            </span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleResetFilters}
+              className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-red-400 hover:shadow-md transition-all duration-300"
+              title="Reset semua filter ke default"
+            >
+              <Filter className="h-4 w-4 text-gray-500 group-hover:text-red-500 transition-all duration-300" />
+              <span className="font-medium text-gray-700 group-hover:text-red-500">
+                Reset Filter
+              </span>
+            </button>
+
+            <button
+              onClick={() => mutate()}
+              className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-[#56B9F1] hover:shadow-md transition-all duration-300"
+            >
+              <RefreshCw className="h-4 w-4 text-gray-500 group-hover:text-[#56B9F1] group-hover:rotate-180 transition-all duration-500" />
+              <span className="font-medium text-gray-700 group-hover:text-[#56B9F1]">
+                Refresh Data
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Statistics Cards - Desain modern */}

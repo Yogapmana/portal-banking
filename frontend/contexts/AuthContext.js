@@ -34,38 +34,14 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
-
-  // Load user from localStorage and cookie on mount
-  useEffect(() => {
-    const storedToken = getCookie("token") || localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (storedToken && storedUser) {
-      try {
-        // Check if token is expired
-        const decoded = jwtDecode(storedToken);
-        const currentTime = Date.now() / 1000;
-
-        if (decoded.exp < currentTime) {
-          // Token expired, try to refresh (refresh token is in httpOnly cookie)
-          handleTokenRefresh();
-        } else {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          // Ensure cookie is set
-          setCookie("token", storedToken);
-        }
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        logout();
-      }
-    }
-    setLoading(false);
-  }, []);
 
   // Handle token refresh
   const handleTokenRefresh = async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
     try {
       // Refresh token is in httpOnly cookie, no need to send it
       const response = await api.auth.refresh();
@@ -76,14 +52,118 @@ export const AuthProvider = ({ children }) => {
         setToken(newToken);
         localStorage.setItem("token", newToken);
         setCookie("token", newToken);
+        return true;
       } else {
         logout();
+        return false;
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
       logout();
+      return false;
+    } finally {
+      setIsRefreshing(false);
     }
   };
+
+  // Load user from localStorage and cookie on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      const storedToken = getCookie("token") || localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      if (storedToken && storedUser) {
+        try {
+          // Check if token is expired
+          const decoded = jwtDecode(storedToken);
+          const currentTime = Date.now() / 1000;
+
+          if (decoded.exp < currentTime) {
+            // Token expired, try to refresh (refresh token is in httpOnly cookie)
+            const refreshed = await handleTokenRefresh();
+            if (!refreshed) {
+              setLoading(false);
+              return;
+            }
+          } else {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+            // Ensure cookie is set
+            setCookie("token", storedToken);
+          }
+        } catch (error) {
+          console.error("Error decoding token:", error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  // Auto-refresh token before it expires (check every 5 minutes)
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const checkTokenExpiry = async () => {
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        const timeUntilExpiry = decoded.exp - currentTime;
+
+        // Refresh if token will expire in less than 5 minutes (300 seconds)
+        if (timeUntilExpiry < 300 && timeUntilExpiry > 0) {
+          console.log("Token will expire soon, refreshing...");
+          await handleTokenRefresh();
+        } else if (timeUntilExpiry <= 0) {
+          // Token already expired
+          console.log("Token expired, attempting refresh...");
+          await handleTokenRefresh();
+        }
+      } catch (error) {
+        console.error("Error checking token expiry:", error);
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiry();
+
+    // Then check every 5 minutes
+    const interval = setInterval(checkTokenExpiry, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [token, user]);
+
+  // Check token when user returns to tab (visibility change)
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        try {
+          const decoded = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+          const timeUntilExpiry = decoded.exp - currentTime;
+
+          // If token expired or will expire soon while tab was hidden
+          if (timeUntilExpiry < 300) {
+            console.log("Tab became visible, checking token...");
+            await handleTokenRefresh();
+          }
+        } catch (error) {
+          console.error("Error on visibility change:", error);
+          logout();
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [token, user]);
 
   const login = (userData, userToken) => {
     setUser(userData);

@@ -25,21 +25,54 @@ import CallLogFilters from "@/components/dashboard/CallLogFilters";
 import CallLogTableRow from "@/components/dashboard/CallLogTableRow";
 import PaginationControls from "@/components/dashboard/PaginationControls";
 
+const STORAGE_KEY = "call_history_state";
+
+// Load saved state from sessionStorage
+const loadSavedState = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("Error loading saved state:", error);
+    return null;
+  }
+};
+
+// Save state to sessionStorage
+const saveState = (filters, page) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ filters, page }));
+  } catch (error) {
+    console.error("Error saving state:", error);
+  }
+};
+
 export default function CallHistoryPage() {
+  const savedState = loadSavedState();
+
   const [callLogs, setCallLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState(null);
-  const [filters, setFilters] = useState({
-    status: "ALL",
-    search: "",
-    startDate: "",
-    endDate: "",
-  });
-  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState(
+    savedState?.filters || {
+      status: "ALL",
+      search: "",
+      startDate: "",
+      endDate: "",
+    }
+  );
+  const [page, setPage] = useState(savedState?.page || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 20;
+
+  // Save state whenever filters or page changes
+  useEffect(() => {
+    saveState(filters, page);
+  }, [filters, page]);
 
   useEffect(() => {
     fetchCallLogs();
@@ -88,13 +121,18 @@ export default function CallHistoryPage() {
   };
 
   const handleResetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       status: "ALL",
       search: "",
       startDate: "",
       endDate: "",
-    });
+    };
+    setFilters(defaultFilters);
     setPage(1);
+    // Clear from sessionStorage
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
   };
 
   const handleUpdateCallLog = async (callLogId, updateData) => {

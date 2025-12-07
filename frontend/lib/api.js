@@ -15,10 +15,70 @@ const getToken = () => {
   return null;
 };
 
+// Flag to prevent multiple refresh attempts
+let isRefreshing = false;
+let refreshPromise = null;
+
+/**
+ * Refresh the access token
+ */
+async function refreshAccessToken() {
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const newToken = data.data.accessToken;
+        localStorage.setItem("token", newToken);
+
+        // Set cookie
+        const expires = new Date();
+        expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000);
+        document.cookie = `token=${newToken};expires=${expires.toUTCString()};path=/`;
+
+        return newToken;
+      } else {
+        throw new Error("Refresh failed");
+      }
+    } catch (error) {
+      // Clear tokens and redirect to login
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        document.cookie =
+          "token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
+      }
+      throw error;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 /**
  * Generic fetch wrapper dengan auto authentication
  */
-async function apiFetch(endpoint, options = {}) {
+async function apiFetch(endpoint, options = {}, retryCount = 0) {
   const token = getToken();
 
   const headers = {
@@ -38,7 +98,13 @@ async function apiFetch(endpoint, options = {}) {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     const response = await fetch(url, config);
-    const data = await response.json();
+
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    const data =
+      contentType && contentType.includes("application/json")
+        ? await response.json()
+        : { message: await response.text() };
 
     if (!response.ok) {
       // Handle rate limiting
@@ -58,6 +124,27 @@ async function apiFetch(endpoint, options = {}) {
         };
       }
 
+      // Handle 401 - try to refresh token
+      if (
+        response.status === 401 &&
+        retryCount === 0 &&
+        !endpoint.includes("/auth/refresh") &&
+        !endpoint.includes("/auth/login")
+      ) {
+        try {
+          await refreshAccessToken();
+          // Retry the original request with new token
+          return await apiFetch(endpoint, options, retryCount + 1);
+        } catch (refreshError) {
+          // Refresh failed, will redirect in refreshAccessToken
+          throw {
+            status: 401,
+            message: "Session expired. Please login again.",
+            error: "UNAUTHORIZED",
+          };
+        }
+      }
+
       throw {
         status: response.status,
         message: data.message || data.error || "Something went wrong",
@@ -67,17 +154,13 @@ async function apiFetch(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    // Handle authentication errors
-    if (error.status === 401) {
-      // Token expired or invalid
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        // Only redirect if not on login page
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
-        }
-      }
+    // Handle network errors
+    if (!error.status) {
+      throw {
+        status: 0,
+        message: "Network error. Please check your connection.",
+        error: "NETWORK_ERROR",
+      };
     }
 
     throw error;
