@@ -24,10 +24,10 @@ docker-compose up -d --build
 docker exec -it portal_backend npm run seed
 
 # Access: http://localhost:3000
-# Login: admin@bank.com / admin123
+# Login: admin@bank.com / [Check .env for password]
 ```
 
-� **Full Docker Guide**: [DOCKER_SETUP.md](DOCKER_SETUP.md)
+📖 **Full Docker Guide**: [DOCKER_SETUP.md](DOCKER_SETUP.md)
 
 ---
 
@@ -56,15 +56,18 @@ docker exec -it portal_backend npm run seed
 ### 🔐 Authentication & Authorization
 
 - **Role-based access control** (Admin, Sales Manager, Sales)
-- **Secure JWT authentication** with configurable expiration
+- **Secure JWT authentication** with Access & Refresh Token mechanism
 - **Password strength validation** with comprehensive requirements
 - **Admin account management** with user creation capabilities
+- **Rate limiting** to prevent brute force attacks
 
 ### 👥 Customer Management
 
 - **Advanced filtering system** with multiple criteria (job, marital status, education, housing)
 - **Real-time search** across customer names, phone numbers, and job titles
 - **Probability score analysis** with min/max filtering
+- **Bulk assignment** capabilities for Managers to distribute leads efficiently
+- **Call logging system** to track interaction history with customers
 - **Dynamic statistics** that update based on applied filters
 - **Responsive data tables** with pagination support
 
@@ -74,7 +77,7 @@ docker exec -it portal_backend npm run seed
 - **Customer probability scoring** for targeted marketing
 - **Performance tracking** for sales teams
 - **AI-powered conversation guides** using Google Gemini API
-- **Smart caching system** to reduce API calls and improve performance
+- **High-performance caching** using Redis to optimize response times
 - **Data visualization** with intuitive card-based layout
 
 ### 🛡️ Security
@@ -108,6 +111,7 @@ docker exec -it portal_backend npm run seed
 - **Node.js 18+** - JavaScript runtime
 - **Express.js** - Web framework
 - **PostgreSQL 14+** - Relational database
+- **Redis** - In-memory data structure store for caching
 - **Prisma ORM** - Database toolkit and query builder
 - **JWT** - Authentication tokens
 - **Bcrypt.js** - Password hashing
@@ -134,6 +138,7 @@ docker exec -it portal_backend npm run seed
 
 - Node.js 18.0.0 or higher
 - PostgreSQL 14 or higher
+- Redis Server
 - npm or yarn package manager
 - Git for version control
 
@@ -159,7 +164,7 @@ docker exec -it portal_backend npm run seed
 # 5. Access the application
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000/api
-# Login: admin@bank.com / Admin123!
+# Login: admin@bank.com / [Check .env for password]
 ```
 
 📖 **Full Docker Guide**: See [DOCKER_SETUP.md](DOCKER_SETUP.md) and [QUICKSTART.md](QUICKSTART.md)
@@ -219,10 +224,10 @@ BCRYPT_SALT_ROUNDS=12
 GEMINI_API_KEY=your-gemini-api-key-here
 
 # Seed User Credentials
-ADMIN_EMAIL=admin@bank.com
-ADMIN_PASSWORD=Admin123!
-SALES_EMAIL=sales@bank.com
-SALES_PASSWORD=Sales123!
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+SALES_EMAIL=
+SALES_PASSWORD=
 ```
 
 **Frontend Environment:**
@@ -330,14 +335,14 @@ The frontend will run on `http://localhost:3000`
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000/api
 - **Database**: localhost:5433
-- **Default Login**: admin@bank.com / Admin123!
+- **Default Login**: admin@bank.com / [Check .env for password]
 
 **Local Development:**
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000/api
 - **Database**: localhost:5432
-- **Default Login**: admin@bank.com / Admin123!
+- **Default Login**: admin@bank.com / [Check .env for password]
 
 ## 👥 User Roles and Permissions
 
@@ -364,6 +369,10 @@ The frontend will run on `http://localhost:3000`
 - **Dashboard access**: Personal performance metrics
 
 ## 📚 API Documentation
+
+Dokumentasi API lengkap tersedia di **[API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)**.
+
+Berikut adalah ringkasan endpoint utama:
 
 ### Authentication Endpoints
 
@@ -500,6 +509,24 @@ Authorization: Bearer <token>
   }
 }
 ```
+
+### Other Available Endpoints
+
+Selain endpoint di atas, API juga menyediakan:
+
+| Kategori      | Endpoint                                  | Deskripsi                      |
+| ------------- | ----------------------------------------- | ------------------------------ |
+| **Call Logs** | `POST /api/call-logs`                     | Buat log panggilan             |
+|               | `GET /api/call-logs`                      | Lihat semua log panggilan      |
+|               | `GET /api/call-logs/statistics`           | Statistik panggilan            |
+|               | `GET /api/call-logs/team-statistics`      | Statistik tim (Manager/Admin)  |
+|               | `GET /api/call-logs/top-performers`       | Top performers (Manager/Admin) |
+| **AI Guide**  | `GET /api/conversation-guide/:customerId` | Panduan percakapan AI          |
+| **Auth**      | `POST /api/auth/refresh`                  | Refresh access token           |
+|               | `POST /api/auth/logout`                   | Logout user                    |
+|               | `POST /api/auth/change-password`          | Ganti password                 |
+
+📖 **Dokumentasi API Lengkap**: Lihat [API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md) untuk detail lengkap termasuk request/response body, rate limiting, error codes, dan authorization matrix.
 
 ## 📁 Project Structure
 
@@ -836,35 +863,3 @@ npx prisma migrate reset
 # Force deploy migrations
 npx prisma migrate deploy
 ```
-
-## 🔄 Version History
-
-### v3.0.0 (Current - November 2025)
-
-- ✅ **Docker support** with hot-reload for development
-- ✅ **Call logs management** with comprehensive tracking
-- ✅ **AI conversation guides** using Google Gemini API
-- ✅ **Performance analytics** with team statistics and rankings
-- ✅ **Two-layer caching** (in-memory + database) for AI responses
-- ✅ **Rate limiting** for AI API calls
-- ✅ **Modern UI/UX** with gradient designs and responsive layout
-- ✅ **Comprehensive documentation** with Docker guides
-
-### v2.0.0 (November 2025)
-
-- ✅ **Layered architecture** with dependency injection
-- ✅ **Repository pattern** for data access
-- ✅ **Improved error handling** with custom error classes
-- ✅ **API documentation** enhancement
-
-### v1.0.0 (Current)
-
-- ✅ **Initial release** with core CRM functionality
-- ✅ **Role-based authentication** system
-- ✅ **Customer data management** with filtering
-- ✅ **Real-time statistics** dashboard
-- ✅ **Admin user management** features
-- ✅ **Security implementation** with validation
-- ✅ **Responsive design** for all devices
-
----
