@@ -1,6 +1,6 @@
 const ConversationGuideService = require("../services/conversationGuideService");
 const CustomerRepository = require("../repositories/customerRepository");
-const { PrismaClient } = require("@prisma/client");
+const { getPrismaClient } = require("../config/database");
 const { asyncHandler } = require("../middleware/errorHandler");
 const {
   AuthorizationError,
@@ -9,7 +9,7 @@ const {
 
 class ConversationGuideController {
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = getPrismaClient(); // Use singleton
     this.conversationGuideService = new ConversationGuideService();
     this.customerRepository = new CustomerRepository(this.prisma);
   }

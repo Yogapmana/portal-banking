@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -16,18 +17,14 @@ import {
   Line,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BarChart3, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
-import { useState, useMemo } from "react";
 
+// Constants
 const PRIMARY_COLOR = "#56B9F1";
 const STATUS_COLORS = {
   TERTARIK: "#10b981",
   TIDAK_TERTARIK: "#ef4444",
-  TIDAK_TERSEDIA: "#6b7280",
-  SALAH_NOMOR: "#f59e0b",
-  BERMINAT: "#3b82f6",
 };
 
 const SALES_COLORS = [
@@ -49,42 +46,52 @@ const CHART_TYPES = {
   LINE: "line",
 };
 
+// Chart button config
+const CHART_BUTTONS = [
+  { key: "BAR", type: CHART_TYPES.BAR, Icon: BarChart3, label: "Bar" },
+  { key: "PIE", type: CHART_TYPES.PIE, Icon: PieChartIcon, label: "Pie" },
+  { key: "LINE", type: CHART_TYPES.LINE, Icon: TrendingUp, label: "Line" },
+];
+
+// Custom Tooltip Component (outside to prevent re-creation)
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white/95 backdrop-blur-sm p-4 border border-slate-100 rounded-xl shadow-xl text-sm ring-1 ring-black/5">
+      <p className="font-medium text-slate-900 mb-2">{label}</p>
+      <div className="space-y-1">
+        {payload.map((entry, i) => (
+          <div key={i} className="flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  backgroundColor: entry.color || entry.stroke || entry.fill,
+                }}
+              />
+              <span className="text-slate-500">{entry.name}</span>
+            </div>
+            <span className="font-semibold text-slate-900">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function TeamPerformanceChart({ teamStats, topPerformers }) {
   const [chartType, setChartType] = useState(CHART_TYPES.BAR);
 
+  // Memoized: Daily interested data for Line chart
   const dailyInterestedData = useMemo(() => {
     if (!teamStats?.dailyInterestedPerSales) return { data: [], salesList: [] };
 
-    const dataMap = {};
     const salesSet = new Set();
-
-    teamStats.dailyInterestedPerSales.forEach((item) => {
-      const dateStr = new Date(item.date).toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-      });
-      if (!dataMap[dateStr]) {
-        dataMap[dateStr] = { date: dateStr };
-      }
-      const salesName = item.salesEmail.split("@")[0];
-      dataMap[dateStr][salesName] = item.count;
-      salesSet.add(salesName);
-    });
-
-    // Sort by date (assuming input is sorted, but good to be safe if we used full date object)
-    // Since we converted to string, sorting might be tricky.
-    // But the backend sorts by date ASC. So the iteration order preserves it if we use an object?
-    // No, object keys are not guaranteed. Better to use an array.
-
-    // Let's rebuild to be safe:
-    // We can just map the backend data if it's already sorted, but we need to group by date.
-    // The backend returns rows: { date, salesId, count }.
-    // We need to group these rows by date.
-
     const grouped = {};
+
     teamStats.dailyInterestedPerSales.forEach((item) => {
       const d = new Date(item.date);
-      const key = d.toISOString().split("T")[0]; // Use ISO date as key for sorting
+      const key = d.toISOString().split("T")[0];
       if (!grouped[key]) grouped[key] = { _dateObj: d };
 
       const salesName = item.salesEmail.split("@")[0];
@@ -93,8 +100,8 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
     });
 
     const sortedData = Object.entries(grouped)
-      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-      .map(([_, val]) => {
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, val]) => {
         const { _dateObj, ...rest } = val;
         return {
           date: _dateObj.toLocaleDateString("id-ID", {
@@ -105,63 +112,37 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
         };
       });
 
-    return {
-      data: sortedData,
-      salesList: Array.from(salesSet),
-    };
-  }, [teamStats]);
+    return { data: sortedData, salesList: Array.from(salesSet) };
+  }, [teamStats?.dailyInterestedPerSales]);
 
-  const statusData = teamStats
-    ? Object.entries(teamStats.statusBreakdown || {})
-        .filter(
-          ([status]) => status === "TERTARIK" || status === "TIDAK_TERTARIK"
-        )
-        .map(([status, value]) => ({
-          name: status === "TERTARIK" ? "Tertarik" : "Tidak Tertarik",
-          value,
-          color: STATUS_COLORS[status] || "#6b7280",
-        }))
-    : [];
+  // Memoized: Status data for Pie chart
+  const statusData = useMemo(() => {
+    if (!teamStats?.statusBreakdown) return [];
+    return Object.entries(teamStats.statusBreakdown)
+      .filter(
+        ([status]) => status === "TERTARIK" || status === "TIDAK_TERTARIK"
+      )
+      .map(([status, value]) => ({
+        name: status === "TERTARIK" ? "Tertarik" : "Tidak Tertarik",
+        value,
+        color: STATUS_COLORS[status],
+      }));
+  }, [teamStats?.statusBreakdown]);
 
-  const performersData =
-    topPerformers?.slice(0, 10).map((p, i) => ({
+  // Memoized: Performers data for Bar chart
+  const performersData = useMemo(() => {
+    if (!topPerformers) return [];
+    return topPerformers.slice(0, 10).map((p, i) => ({
       name:
         p.salesEmail?.split("@")[0] ||
         p.email?.split("@")[0] ||
         `Sales ${i + 1}`,
       totalCalls: p.totalCalls || 0,
       interested: p.interestedCount || 0,
-      successRate: parseFloat(p.successRate || 0),
-    })) || [];
+    }));
+  }, [topPerformers]);
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-white/95 backdrop-blur-sm p-4 border border-slate-100 rounded-xl shadow-xl text-sm ring-1 ring-black/5">
-        <p className="font-medium text-slate-900 mb-2">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry, i) => (
-            <div key={i} className="flex items-center gap-3 justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: entry.color || entry.stroke || entry.fill,
-                  }}
-                />
-                <span className="text-slate-500">{entry.name}</span>
-              </div>
-              <span className="font-semibold text-slate-900">
-                {entry.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderChart = () => {
+  const renderChart = useCallback(() => {
     switch (chartType) {
       case CHART_TYPES.PIE:
         return (
@@ -189,6 +170,7 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
             </PieChart>
           </ResponsiveContainer>
         );
+
       case CHART_TYPES.LINE:
         return (
           <ResponsiveContainer width="100%" height={300}>
@@ -250,7 +232,7 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
             </LineChart>
           </ResponsiveContainer>
         );
-      case CHART_TYPES.BAR:
+
       default:
         return (
           <ResponsiveContainer width="100%" height={300}>
@@ -302,7 +284,7 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
               <Bar
                 dataKey="interested"
                 name="Tertarik"
-                fill="#10b981"
+                fill={STATUS_COLORS.TERTARIK}
                 radius={[4, 4, 0, 0]}
                 maxBarSize={50}
               />
@@ -310,17 +292,17 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
           </ResponsiveContainer>
         );
     }
-  };
+  }, [chartType, statusData, dailyInterestedData, performersData]);
 
   return (
     <Card className="rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border-0">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <CardTitle className="flex items-center gap-2 text-foreground text-lg font-semibold">
-          <BarChart3 className="h-5 w-5 text-[#56B9F1]" />
+          <BarChart3 className="h-5 w-5" style={{ color: PRIMARY_COLOR }} />
           Team Performance
         </CardTitle>
         <div className="flex gap-2 flex-wrap">
-          {Object.entries(CHART_TYPES).map(([key, type]) => (
+          {CHART_BUTTONS.map(({ key, type, Icon, label }) => (
             <Button
               key={key}
               variant={chartType === type ? "default" : "outline"}
@@ -328,11 +310,8 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
               onClick={() => setChartType(type)}
               className="flex items-center gap-1"
             >
-              {type === CHART_TYPES.BAR && <BarChart3 className="h-3 w-3" />}
-              {type === CHART_TYPES.PIE && <PieChartIcon className="h-3 w-3" />}
-              {type === CHART_TYPES.LINE && <TrendingUp className="h-3 w-3" />}
-              {type === CHART_TYPES.AREA && <BarChart3 className="h-3 w-3" />}
-              {type.charAt(0).toUpperCase() + type.slice(1)}
+              <Icon className="h-3 w-3" />
+              {label}
             </Button>
           ))}
         </div>

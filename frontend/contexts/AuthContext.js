@@ -32,7 +32,6 @@ const deleteCookie = (name) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -186,7 +185,6 @@ export const AuthProvider = ({ children }) => {
 
     setUser(null);
     setToken(null);
-    setRefreshToken(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     deleteCookie("token");
@@ -214,7 +212,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     token,
-    refreshToken,
     loading,
     login,
     logout,

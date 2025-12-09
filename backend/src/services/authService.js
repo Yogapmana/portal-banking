@@ -1,15 +1,10 @@
 const bcrypt = require("bcryptjs");
 const { config } = require("../config");
-const {
-  generateTokenPair,
-  verifyRefreshToken,
-  generateAccessToken,
-} = require("../config/jwt");
-const { PrismaClient } = require("@prisma/client");
+const { generateTokenPair, verifyRefreshToken } = require("../config/jwt");
+const { getPrismaClient } = require("../config/database");
 const {
   ConflictError,
   AuthenticationError,
-  ValidationError,
   NotFoundError,
 } = require("../middleware/errorHandler");
 
@@ -20,7 +15,7 @@ const {
 class AuthService {
   constructor(userRepository) {
     this.userRepository = userRepository;
-    this.prisma = new PrismaClient();
+    this.prisma = getPrismaClient(); // Use singleton instead of creating new instance
   }
 
   /**
