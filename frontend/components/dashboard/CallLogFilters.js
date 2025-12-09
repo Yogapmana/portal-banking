@@ -42,7 +42,6 @@ export default function CallLogFilters({ filters, onFilterChange, onReset }) {
                 <SelectItem value="TIDAK_TERSEDIA">Tidak Diangkat</SelectItem>
                 <SelectItem value="SALAH_NOMOR">Salah Nomor</SelectItem>
                 <SelectItem value="BERMINAT">Minta Callback</SelectItem>
-                <SelectItem value="SELESAI">Selesai</SelectItem>
               </SelectContent>
             </Select>
           </div>

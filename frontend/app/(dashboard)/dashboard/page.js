@@ -116,19 +116,6 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-
-            {/* Status bar */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-gray-600">Live data</span>
-              </div>
-              <div className="text-gray-400">•</div>
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-3 w-3 text-gray-400" />
-                <span className="text-gray-600">Updated {currentTime}</span>
-              </div>
-            </div>
           </div>
         </div>
 

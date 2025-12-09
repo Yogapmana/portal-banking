@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
             title="Success Rate"
             value={`${stats.successRate || 0}%`}
             icon={Target}
-            description="Tertarik + Selesai"
+            description="Nasabah Tertarik"
             className={cardClasses}
           />
 

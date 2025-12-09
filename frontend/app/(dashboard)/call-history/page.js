@@ -207,14 +207,13 @@ export default function CallHistoryPage() {
           trend={statistics?.trends?.interested}
         />
         <StatisticsCard
-          title="Selesai"
-          value={statistics?.byStatus?.SELESAI?.toLocaleString() || "0"}
+          title="Berminat"
+          value={statistics?.byStatus?.BERMINAT?.toLocaleString() || "0"}
           icon={Award}
-          description="Transaksi selesai"
-          iconBgColor="bg-gradient-to-br from-purple-500 to-purple-600"
+          description="Minta callback"
+          iconBgColor="bg-gradient-to-br from-blue-500 to-blue-600"
           iconColor="text-white"
           className="fade-in shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100"
-          trend={statistics?.trends?.completed}
         />
       </div>
 

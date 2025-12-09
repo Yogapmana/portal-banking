@@ -26,11 +26,6 @@ const STATUS_CONFIG = {
     variant: "outline",
     className: "bg-blue-100 text-blue-700 border-blue-200",
   },
-  SELESAI: {
-    label: "Selesai",
-    variant: "default",
-    className: "bg-purple-100 text-purple-800 border-purple-200",
-  },
 };
 
 export function getStatusConfig(status) {

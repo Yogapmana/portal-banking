@@ -28,7 +28,6 @@ const STATUS_COLORS = {
   TIDAK_TERSEDIA: "#6b7280",
   SALAH_NOMOR: "#f59e0b",
   BERMINAT: "#3b82f6",
-  SELESAI: "#8b5cf6",
 };
 
 const SALES_COLORS = [
@@ -113,13 +112,15 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
   }, [teamStats]);
 
   const statusData = teamStats
-    ? Object.entries(teamStats.statusBreakdown || {}).map(
-        ([status, value]) => ({
-          name: status.replace(/_/g, " "),
+    ? Object.entries(teamStats.statusBreakdown || {})
+        .filter(
+          ([status]) => status === "TERTARIK" || status === "TIDAK_TERTARIK"
+        )
+        .map(([status, value]) => ({
+          name: status === "TERTARIK" ? "Tertarik" : "Tidak Tertarik",
           value,
           color: STATUS_COLORS[status] || "#6b7280",
-        })
-      )
+        }))
     : [];
 
   const performersData =
@@ -366,25 +367,6 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
             <p className="text-sm text-muted-foreground">Avg/Sales</p>
           </div>
         </div>
-
-        {/* Status Badges */}
-        {statusData.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4 justify-center">
-            {statusData.map((s) => (
-              <Badge
-                key={s.name}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: s.color }}
-                />
-                {s.name}
-              </Badge>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -250,11 +250,11 @@ class CallLogRepository {
       ORDER BY date ASC
     `;
 
-    // Success rate (TERTARIK + SELESAI / TOTAL)
+    // Success rate (TERTARIK / TOTAL)
     const successfulCalls = await this.prisma.callLog.count({
       where: {
         userId,
-        status: { in: ["TERTARIK", "SELESAI"] },
+        status: { in: ["TERTARIK"] },
       },
     });
 
@@ -334,7 +334,7 @@ class CallLogRepository {
           where: {
             ...where,
             userId: sp.userId,
-            status: { in: ["TERTARIK", "SELESAI"] },
+            status: { in: ["TERTARIK"] },
           },
         });
 
@@ -393,7 +393,7 @@ class CallLogRepository {
     const successfulCalls = await this.prisma.callLog.count({
       where: {
         ...where,
-        status: { in: ["TERTARIK", "SELESAI"] },
+        status: { in: ["TERTARIK"] },
       },
     });
 
@@ -426,7 +426,6 @@ class CallLogRepository {
           totalCalls: performer.totalCalls,
           successRate: performer.successRate,
           interestedCount: performer.statusBreakdown?.TERTARIK || 0,
-          completedCount: performer.statusBreakdown?.SELESAI || 0,
         })),
       dailyCalls: dailyCalls.map((day) => ({
         date: day.date,
@@ -438,6 +437,10 @@ class CallLogRepository {
         salesEmail: row.sales_email,
         count: Number(row.count),
       })),
+      avgCallsPerSales:
+        salesDetails.length > 0
+          ? Math.round(totalCalls / salesDetails.length)
+          : 0,
     };
   }
 }

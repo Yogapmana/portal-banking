@@ -135,7 +135,6 @@ export default function CallLogTableRow({ log, onUpdate }) {
               <SelectItem value="TIDAK_TERSEDIA">Tidak Angkat</SelectItem>
               <SelectItem value="SALAH_NOMOR">Nomor Salah</SelectItem>
               <SelectItem value="BERMINAT">Minta Dihubungi Lagi</SelectItem>
-              <SelectItem value="SELESAI">Selesai</SelectItem>
             </SelectContent>
           </Select>
         ) : (
