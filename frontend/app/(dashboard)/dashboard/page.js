@@ -84,27 +84,6 @@ export default function DashboardPage() {
   const handlePageChange = (newPage) =>
     setFilters({ ...filters, page: newPage });
 
-  const handleResetFilters = () => {
-    const defaultFilters = {
-      page: 1,
-      limit: 20,
-      search: "",
-      minScore: "",
-      maxScore: "",
-      job: "",
-      marital: "",
-      education: "",
-      housing: "",
-      sortBy: "score",
-      sortOrder: "desc",
-    };
-    setFilters(defaultFilters);
-    // Clear from sessionStorage
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
-  };
-
   const stats = data?.stats || { totalCustomers: 0, avgScore: 0, maxScore: 0 };
   const pagination = data?.pagination || {
     currentPage: 1,
@@ -150,30 +129,6 @@ export default function DashboardPage() {
                 <span className="text-gray-600">Updated {currentTime}</span>
               </div>
             </div>
-          </div>
-
-          {/* Action button */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleResetFilters}
-              className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-red-400 hover:shadow-md transition-all duration-300"
-              title="Reset semua filter ke default"
-            >
-              <Filter className="h-4 w-4 text-gray-500 group-hover:text-red-500 transition-all duration-300" />
-              <span className="font-medium text-gray-700 group-hover:text-red-500">
-                Reset Filter
-              </span>
-            </button>
-
-            <button
-              onClick={() => mutate()}
-              className="group inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-[#56B9F1] hover:shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="h-4 w-4 text-gray-500 group-hover:text-[#56B9F1] group-hover:rotate-180 transition-all duration-500" />
-              <span className="font-medium text-gray-700 group-hover:text-[#56B9F1]">
-                Refresh Data
-              </span>
-            </button>
           </div>
         </div>
 

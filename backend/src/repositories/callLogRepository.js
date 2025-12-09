@@ -369,6 +369,26 @@ class CallLogRepository {
       ORDER BY date ASC
     `;
 
+    // Daily interested per sales
+    let dailyInterestedPerSales = [];
+    try {
+      dailyInterestedPerSales = await this.prisma.$queryRaw`
+        SELECT 
+          DATE(cl.call_date) as date,
+          cl.user_id as sales_id,
+          u.email as sales_email,
+          COUNT(*)::integer as count
+        FROM call_logs cl
+        JOIN users u ON cl.user_id = u.id
+        WHERE cl.status = 'TERTARIK'
+          AND cl.call_date >= ${sevenDaysAgo}
+        GROUP BY DATE(cl.call_date), cl.user_id, u.email
+        ORDER BY date ASC
+      `;
+    } catch (error) {
+      console.error("Error fetching daily interested stats:", error);
+    }
+
     // Success rate
     const successfulCalls = await this.prisma.callLog.count({
       where: {
@@ -411,6 +431,12 @@ class CallLogRepository {
       dailyCalls: dailyCalls.map((day) => ({
         date: day.date,
         count: Number(day.count),
+      })),
+      dailyInterestedPerSales: dailyInterestedPerSales.map((row) => ({
+        date: row.date,
+        salesId: Number(row.sales_id),
+        salesEmail: row.sales_email,
+        count: Number(row.count),
       })),
     };
   }

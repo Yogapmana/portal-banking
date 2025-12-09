@@ -16,6 +16,8 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   User,
   Home,
   Phone,
@@ -290,9 +292,89 @@ export default function CustomerTable({
             </Table>
           </div>
 
+          {/** MOBILE LIST */}
+          <div className="md:hidden space-y-4">
+            {customers.map((customer) => (
+              <div
+                key={customer.id}
+                className={`p-4 rounded-xl border ${
+                  selectedCustomers.includes(customer.id)
+                    ? "bg-[#eaf6ff] border-[#56B9F1]"
+                    : "bg-white border-gray-100"
+                } shadow-sm space-y-3`}
+                onClick={(e) => handleRowClick(customer, e)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {user?.role === "SALES_MANAGER" && (
+                      <Checkbox
+                        checked={selectedCustomers.includes(customer.id)}
+                        onCheckedChange={() =>
+                          toggleCustomerSelection(customer.id)
+                        }
+                        className="border-blue-300 data-[state=checked]:bg-[#56B9F1]"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
+                    <div className="w-10 h-10 rounded-lg bg-[#56B9F1] flex items-center justify-center text-white shadow font-semibold text-sm">
+                      {(customer.name || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {customer.name}
+                      </p>
+                      <p className="text-xs text-gray-500 capitalize">
+                        {customer.job}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-semibold ${getScoreColor(
+                      customer.score
+                    )}`}
+                  >
+                    {formatScore(customer.score)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Phone className="w-3 h-3" />
+                    <span className="truncate">
+                      {customer.phoneNumber || "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Home className="w-3 h-3" />
+                    <span>
+                      {customer.housing === "yes" ? "Owner" : "No House"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-gray-50">
+                  <div className="text-xs text-gray-500 capitalize">
+                    {customer.education?.replace(/\./g, " ")}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewDetail(customer.id);
+                    }}
+                    className="h-8 text-[#056aa8] hover:text-[#56B9F1] hover:bg-blue-50"
+                  >
+                    View Details <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/** PAGINATION */}
-          <div className="flex items-center justify-between pt-6">
-            <div className="text-sm text-gray-600">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+            <div className="text-sm text-gray-600 text-center md:text-left">
               Showing{" "}
               <span className="text-[#056aa8] font-semibold">
                 {(pagination.currentPage - 1) * 20 + 1}
@@ -313,15 +395,26 @@ export default function CustomerTable({
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
+                size="icon"
+                disabled={pagination.currentPage === 1}
+                onClick={() => onPageChange(1)}
+                className="h-9 w-9 border-blue-200 text-[#056aa8] hover:bg-blue-50"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="outline"
                 size="sm"
                 disabled={!pagination.hasPrev}
                 onClick={() => onPageChange(pagination.currentPage - 1)}
-                className="border-blue-200 text-[#056aa8]"
+                className="h-9 border-blue-200 text-[#056aa8] hover:bg-blue-50"
               >
-                <ChevronLeft className="w-4 h-4" /> Prev
+                <ChevronLeft className="w-4 h-4 mr-1" /> Prev
               </Button>
 
-              <div className="px-4 py-2 border border-blue-200 bg-[#f3f9ff] rounded-lg">
+              <div className="px-4 py-2 text-sm font-medium border border-blue-200 bg-[#f3f9ff] text-[#056aa8] rounded-lg min-w-[100px] text-center">
                 Page {pagination.currentPage} / {pagination.totalPages}
               </div>
 
@@ -330,9 +423,20 @@ export default function CustomerTable({
                 size="sm"
                 disabled={!pagination.hasNext}
                 onClick={() => onPageChange(pagination.currentPage + 1)}
-                className="border-blue-200 text-[#056aa8]"
+                className="h-9 border-blue-200 text-[#056aa8] hover:bg-blue-50"
               >
-                Next <ChevronRight className="w-4 h-4" />
+                Next <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={pagination.currentPage === pagination.totalPages}
+                onClick={() => onPageChange(pagination.totalPages)}
+                className="h-9 w-9 border-blue-200 text-[#056aa8] hover:bg-blue-50"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
               </Button>
             </div>
           </div>

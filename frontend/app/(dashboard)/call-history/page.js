@@ -198,7 +198,7 @@ export default function CallHistoryPage() {
         />
         <StatisticsCard
           title="Tertarik"
-          value={statistics?.byStatus?.INTERESTED?.toLocaleString() || "0"}
+          value={statistics?.byStatus?.TERTARIK?.toLocaleString() || "0"}
           icon={Users}
           description="Nasabah tertarik"
           iconBgColor="bg-gradient-to-br from-emerald-500 to-emerald-600"
@@ -208,7 +208,7 @@ export default function CallHistoryPage() {
         />
         <StatisticsCard
           title="Selesai"
-          value={statistics?.byStatus?.COMPLETED?.toLocaleString() || "0"}
+          value={statistics?.byStatus?.SELESAI?.toLocaleString() || "0"}
           icon={Award}
           description="Transaksi selesai"
           iconBgColor="bg-gradient-to-br from-purple-500 to-purple-600"

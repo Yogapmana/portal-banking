@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,22 +25,25 @@ export default function CreateUserForm({ onSuccess }) {
     role: "SALES",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
       await onSuccess(formData);
+      toast.success("User berhasil dibuat!", {
+        description: `Akun ${formData.email} dengan role ${formData.role} telah dibuat.`,
+      });
       setFormData({
         email: "",
         password: "",
         role: "SALES",
       });
     } catch (err) {
-      setError(err.message || "Gagal membuat user");
+      toast.error("Gagal membuat user", {
+        description: err.message || "Terjadi kesalahan saat membuat user.",
+      });
     } finally {
       setLoading(false);
     }
@@ -115,13 +119,6 @@ export default function CreateUserForm({ onSuccess }) {
               </SelectContent>
             </Select>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-              {error}
-            </div>
-          )}
 
           {/* Submit Button */}
           <Button

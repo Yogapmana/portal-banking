@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -27,23 +28,27 @@ export default function CallLogForm({ customerId, onSuccess }) {
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!status) {
-      setError("Silakan pilih status panggilan");
+      toast.warning("Pilih status panggilan terlebih dahulu");
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
 
       await api.callLogs.create(parseInt(customerId), {
         status,
         notes: notes.trim() || null,
+      });
+
+      const statusLabel =
+        CALL_STATUS_OPTIONS.find((o) => o.value === status)?.label || status;
+      toast.success("Catatan panggilan tersimpan!", {
+        description: `Status: ${statusLabel}`,
       });
 
       // Reset form
@@ -55,7 +60,9 @@ export default function CallLogForm({ customerId, onSuccess }) {
         onSuccess();
       }
     } catch (err) {
-      setError(err.message || "Gagal menyimpan catatan panggilan");
+      toast.error("Gagal menyimpan catatan panggilan", {
+        description: err.message || "Silakan coba lagi.",
+      });
       console.error("Error creating call log:", err);
     } finally {
       setLoading(false);
@@ -106,13 +113,6 @@ export default function CallLogForm({ customerId, onSuccess }) {
               Opsional: Tambahkan detail mengenai percakapan dengan customer
             </p>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-              {error}
-            </div>
-          )}
 
           {/* Submit Button */}
           <Button

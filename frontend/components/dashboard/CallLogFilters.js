@@ -37,11 +37,12 @@ export default function CallLogFilters({ filters, onFilterChange, onReset }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Semua Status</SelectItem>
-                <SelectItem value="INTERESTED">Tertarik</SelectItem>
-                <SelectItem value="NOT_INTERESTED">Tidak Tertarik</SelectItem>
-                <SelectItem value="NO_ANSWER">Tidak Diangkat</SelectItem>
-                <SelectItem value="WRONG_NUMBER">Nomor Salah</SelectItem>
-                <SelectItem value="CALLBACK">Callback</SelectItem>
+                <SelectItem value="TERTARIK">Tertarik</SelectItem>
+                <SelectItem value="TIDAK_TERTARIK">Tidak Tertarik</SelectItem>
+                <SelectItem value="TIDAK_TERSEDIA">Tidak Diangkat</SelectItem>
+                <SelectItem value="SALAH_NOMOR">Salah Nomor</SelectItem>
+                <SelectItem value="BERMINAT">Minta Callback</SelectItem>
+                <SelectItem value="SELESAI">Selesai</SelectItem>
               </SelectContent>
             </Select>
           </div>

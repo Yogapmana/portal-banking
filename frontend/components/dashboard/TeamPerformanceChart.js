@@ -14,14 +14,12 @@ import {
   Cell,
   LineChart,
   Line,
-  AreaChart,
-  Area,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BarChart3, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const PRIMARY_COLOR = "#56B9F1";
 const STATUS_COLORS = {
@@ -33,15 +31,86 @@ const STATUS_COLORS = {
   SELESAI: "#8b5cf6",
 };
 
+const SALES_COLORS = [
+  "#2563eb",
+  "#7c3aed",
+  "#db2777",
+  "#ea580c",
+  "#65a30d",
+  "#0891b2",
+  "#be185d",
+  "#d97706",
+  "#16a34a",
+  "#4f46e5",
+];
+
 const CHART_TYPES = {
   BAR: "bar",
   PIE: "pie",
   LINE: "line",
-  AREA: "area",
 };
 
 export default function TeamPerformanceChart({ teamStats, topPerformers }) {
   const [chartType, setChartType] = useState(CHART_TYPES.BAR);
+
+  const dailyInterestedData = useMemo(() => {
+    if (!teamStats?.dailyInterestedPerSales) return { data: [], salesList: [] };
+
+    const dataMap = {};
+    const salesSet = new Set();
+
+    teamStats.dailyInterestedPerSales.forEach((item) => {
+      const dateStr = new Date(item.date).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+      });
+      if (!dataMap[dateStr]) {
+        dataMap[dateStr] = { date: dateStr };
+      }
+      const salesName = item.salesEmail.split("@")[0];
+      dataMap[dateStr][salesName] = item.count;
+      salesSet.add(salesName);
+    });
+
+    // Sort by date (assuming input is sorted, but good to be safe if we used full date object)
+    // Since we converted to string, sorting might be tricky.
+    // But the backend sorts by date ASC. So the iteration order preserves it if we use an object?
+    // No, object keys are not guaranteed. Better to use an array.
+
+    // Let's rebuild to be safe:
+    // We can just map the backend data if it's already sorted, but we need to group by date.
+    // The backend returns rows: { date, salesId, count }.
+    // We need to group these rows by date.
+
+    const grouped = {};
+    teamStats.dailyInterestedPerSales.forEach((item) => {
+      const d = new Date(item.date);
+      const key = d.toISOString().split("T")[0]; // Use ISO date as key for sorting
+      if (!grouped[key]) grouped[key] = { _dateObj: d };
+
+      const salesName = item.salesEmail.split("@")[0];
+      grouped[key][salesName] = item.count;
+      salesSet.add(salesName);
+    });
+
+    const sortedData = Object.entries(grouped)
+      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+      .map(([_, val]) => {
+        const { _dateObj, ...rest } = val;
+        return {
+          date: _dateObj.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+          }),
+          ...rest,
+        };
+      });
+
+    return {
+      data: sortedData,
+      salesList: Array.from(salesSet),
+    };
+  }, [teamStats]);
 
   const statusData = teamStats
     ? Object.entries(teamStats.statusBreakdown || {}).map(
@@ -64,16 +133,29 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
       successRate: parseFloat(p.successRate || 0),
     })) || [];
 
-  const CustomTooltip = ({ active, payload }) => {
+  const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="bg-white p-3 border rounded-lg shadow-md text-sm">
-        {payload.map((entry, i) => (
-          <div key={i} className="flex justify-between">
-            <span>{entry.name}</span>
-            <span className="font-semibold">{entry.value}</span>
-          </div>
-        ))}
+      <div className="bg-white/95 backdrop-blur-sm p-4 border border-slate-100 rounded-xl shadow-xl text-sm ring-1 ring-black/5">
+        <p className="font-medium text-slate-900 mb-2">{label}</p>
+        <div className="space-y-1">
+          {payload.map((entry, i) => (
+            <div key={i} className="flex items-center gap-3 justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: entry.color || entry.stroke || entry.fill,
+                  }}
+                />
+                <span className="text-slate-500">{entry.name}</span>
+              </div>
+              <span className="font-semibold text-slate-900">
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -90,11 +172,16 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
+                innerRadius={60}
                 outerRadius={100}
-                label={(entry) => `${entry.name}: ${entry.value}`}
+                paddingAngle={2}
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
+                labelLine={false}
               >
                 {statusData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
+                  <Cell key={i} fill={entry.color} strokeWidth={0} />
                 ))}
               </Pie>
               <Tooltip content={CustomTooltip} />
@@ -104,67 +191,120 @@ export default function TeamPerformanceChart({ teamStats, topPerformers }) {
       case CHART_TYPES.LINE:
         return (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={performersData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip content={CustomTooltip} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="successRate"
-                stroke={PRIMARY_COLOR}
-                strokeWidth={2}
+            <LineChart
+              data={dailyInterestedData.data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#e2e8f0"
               />
-              <Line
-                type="monotone"
-                dataKey="interested"
-                stroke="#10b981"
-                strokeWidth={2}
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#64748b", fontSize: 12 }}
+                dy={10}
+                label={{
+                  value: "Tanggal",
+                  position: "insideBottom",
+                  offset: -10,
+                  style: { fill: "#64748b", fontSize: 12, fontWeight: 500 },
+                }}
               />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#64748b", fontSize: 12 }}
+                label={{
+                  value: "Nasabah Tertarik",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 10,
+                  style: { fill: "#64748b", fontSize: 12, fontWeight: 500 },
+                }}
+              />
+              <Tooltip
+                content={CustomTooltip}
+                cursor={{
+                  stroke: "#cbd5e1",
+                  strokeWidth: 1,
+                  strokeDasharray: "4 4",
+                }}
+              />
+              <Legend verticalAlign="top" height={36} iconType="circle" />
+              {dailyInterestedData.salesList.map((salesName, index) => (
+                <Line
+                  key={salesName}
+                  type="monotone"
+                  dataKey={salesName}
+                  stroke={SALES_COLORS[index % SALES_COLORS.length]}
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  connectNulls
+                />
+              ))}
             </LineChart>
-          </ResponsiveContainer>
-        );
-      case CHART_TYPES.AREA:
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={performersData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip content={CustomTooltip} />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="totalCalls"
-                stackId="1"
-                stroke={PRIMARY_COLOR}
-                fill={PRIMARY_COLOR}
-                fillOpacity={0.5}
-              />
-              <Area
-                type="monotone"
-                dataKey="interested"
-                stackId="2"
-                stroke="#10b981"
-                fill="#10b981"
-                fillOpacity={0.5}
-              />
-            </AreaChart>
           </ResponsiveContainer>
         );
       case CHART_TYPES.BAR:
       default:
         return (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={performersData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-30} textAnchor="end" height={60} />
-              <YAxis />
-              <Tooltip content={CustomTooltip} />
-              <Legend />
-              <Bar dataKey="totalCalls" fill={PRIMARY_COLOR} />
-              <Bar dataKey="interested" fill="#10b981" />
+            <BarChart
+              data={performersData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#e2e8f0"
+              />
+              <XAxis
+                dataKey="name"
+                angle={-30}
+                textAnchor="end"
+                height={60}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#64748b", fontSize: 12 }}
+                label={{
+                  value: "Nama Sales",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { fill: "#64748b", fontSize: 12, fontWeight: 500 },
+                }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#64748b", fontSize: 12 }}
+                label={{
+                  value: "Jumlah Panggilan",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 10,
+                  style: { fill: "#64748b", fontSize: 12, fontWeight: 500 },
+                }}
+              />
+              <Tooltip content={CustomTooltip} cursor={{ fill: "#f1f5f9" }} />
+              <Legend verticalAlign="top" height={36} iconType="circle" />
+              <Bar
+                dataKey="totalCalls"
+                name="Total Panggilan"
+                fill={PRIMARY_COLOR}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={50}
+              />
+              <Bar
+                dataKey="interested"
+                name="Tertarik"
+                fill="#10b981"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={50}
+              />
             </BarChart>
           </ResponsiveContainer>
         );

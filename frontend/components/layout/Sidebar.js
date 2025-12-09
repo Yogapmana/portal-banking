@@ -48,9 +48,9 @@ export default function Sidebar() {
 
   const filteredNavigation = navigation.filter((item) =>
     // disabling customers icon when not in usual path
-    item.name === "Customers" ?
-    pathname.includes('customer') :
-    item.roles.includes(user?.role)
+    item.name === "Customers"
+      ? pathname.includes("customer")
+      : item.roles.includes(user?.role)
   );
 
   return (
@@ -64,11 +64,11 @@ export default function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:relative flex flex-col transition-all duration-300 z-50 h-full border-r border-blue-300",
+          "fixed lg:relative flex flex-col transition-all duration-500 ease-in-out z-50 h-full border-r border-blue-300",
           "bg-[#56B9F1] rounded-r-[20px]",
           "lg:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
-          isCollapsed ? "lg:w-16 w-64" : "lg:w-64 w-64"
+          isCollapsed ? "lg:w-20 w-64" : "lg:w-64 w-64"
         )}
       >
         <div className="flex h-14 items-center justify-between px-3 border-b border-blue-300/40 lg:hidden">
@@ -95,36 +95,41 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all",
+                    "group flex items-center rounded-xl py-3 text-sm font-medium transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap",
                     isActive
                       ? "bg-white text-black shadow-md"
                       : "text-white/90 hover:bg-white/20",
-                    isCollapsed && "justify-center px-0"
+                    isCollapsed
+                      ? "lg:justify-center lg:px-0 lg:gap-0 px-3 gap-3"
+                      : "px-3 gap-3"
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <Icon
                     className={cn(
-                      "transition-all",
+                      "transition-all duration-500 ease-in-out shrink-0",
                       isActive ? "text-black" : "text-white",
-                      isCollapsed ? "h-7 w-7" : "h-7 w-7"
+                      "h-7 w-7"
                     )}
                   />
 
-                  {!isCollapsed && (
-                    <span
-                      className={cn(
-                        "text-base font-medium hidden lg:block transition-all",
-                        isActive ? "text-black" : "text-white"
-                      )}
-                    >
-                      {item.name}
-                    </span>
-                  )}
-
+                  {/* Desktop Text with Smooth Transition */}
                   <span
                     className={cn(
-                      "text-base font-medium block lg:hidden transition-all translate-x-0",
+                      "text-base font-medium hidden lg:block transition-all duration-500 ease-in-out",
+                      isActive ? "text-black" : "text-white",
+                      isCollapsed
+                        ? "max-w-0 opacity-0 translate-x-2.5"
+                        : "max-w-[200px] opacity-100 translate-x-0"
+                    )}
+                  >
+                    {item.name}
+                  </span>
+
+                  {/* Mobile Text - Always Visible */}
+                  <span
+                    className={cn(
+                      "text-base font-medium block lg:hidden transition-all",
                       isActive ? "text-black" : "text-white"
                     )}
                   >

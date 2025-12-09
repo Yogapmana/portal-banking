@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { api } from "@/lib/api";
 
 export default function BulkAssignDialog({
@@ -33,8 +34,6 @@ export default function BulkAssignDialog({
   const [selectedSales, setSelectedSales] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingSales, setLoadingSales] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   // Get selected customer objects from IDs
   const selectedCustomerObjects =
@@ -45,8 +44,6 @@ export default function BulkAssignDialog({
     if (isOpen) {
       fetchSalesList();
       setSelectedSales("");
-      setError("");
-      setSuccess("");
     }
   }, [isOpen]);
 
@@ -57,7 +54,7 @@ export default function BulkAssignDialog({
       setSalesList(response.data || []);
     } catch (err) {
       console.error("Error fetching sales list:", err);
-      setError("Gagal memuat daftar sales");
+      toast.error("Gagal memuat daftar sales");
     } finally {
       setLoadingSales(false);
     }
@@ -65,35 +62,36 @@ export default function BulkAssignDialog({
 
   const handleAssign = async () => {
     if (!selectedSales) {
-      setError("Pilih sales terlebih dahulu");
+      toast.warning("Pilih sales terlebih dahulu");
       return;
     }
 
     if (!selectedCustomers?.length) {
-      setError("Tidak ada customer yang dipilih");
+      toast.warning("Tidak ada customer yang dipilih");
       return;
     }
 
     setLoading(true);
-    setError("");
-    setSuccess("");
 
     try {
-      // selectedCustomers is already an array of IDs
       const response = await api.customers.bulkAssign(
         selectedCustomers || [],
         parseInt(selectedSales)
       );
 
-      setSuccess(response.message || "Customer berhasil di-assign");
+      const salesEmail =
+        salesList.find((s) => s.id.toString() === selectedSales)?.email ||
+        "Sales";
+      toast.success("Customer berhasil di-assign!", {
+        description: `${selectedCustomers.length} customer telah di-assign ke ${salesEmail}`,
+      });
 
-      // Wait a bit to show success message, then close and refresh
-      setTimeout(() => {
-        onSuccess?.();
-        onClose();
-      }, 1500);
+      onSuccess?.();
+      onClose();
     } catch (err) {
-      setError(err.message || "Gagal assign customer");
+      toast.error("Gagal assign customer", {
+        description: err.message || "Silakan coba lagi.",
+      });
     } finally {
       setLoading(false);
     }
@@ -101,27 +99,25 @@ export default function BulkAssignDialog({
 
   const handleUnassign = async () => {
     if (!selectedCustomers?.length) {
-      setError("Tidak ada customer yang dipilih");
+      toast.warning("Tidak ada customer yang dipilih");
       return;
     }
 
     setLoading(true);
-    setError("");
-    setSuccess("");
 
     try {
-      // selectedCustomers is already an array of IDs
       const response = await api.customers.bulkUnassign(selectedCustomers);
 
-      setSuccess(response.message || "Customer berhasil di-unassign");
+      toast.success("Customer berhasil di-unassign!", {
+        description: `${selectedCustomers.length} customer telah di-unassign dari sales.`,
+      });
 
-      // Wait a bit to show success message, then close and refresh
-      setTimeout(() => {
-        onSuccess?.();
-        onClose();
-      }, 1500);
+      onSuccess?.();
+      onClose();
     } catch (err) {
-      setError(err.message || "Gagal unassign customer");
+      toast.error("Gagal unassign customer", {
+        description: err.message || "Silakan coba lagi.",
+      });
     } finally {
       setLoading(false);
     }
@@ -133,26 +129,12 @@ export default function BulkAssignDialog({
         <DialogHeader>
           <DialogTitle>Assign Customer ke Sales</DialogTitle>
           <DialogDescription>
-            Assign {selectedCustomers?.length || 0} customer yang dipilih ke sales
-            team
+            Assign {selectedCustomers?.length || 0} customer yang dipilih ke
+            sales team
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {error && (
-            <div className="flex items-center gap-2 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-600">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-600">
-              <CheckCircle className="h-4 w-4 shrink-0" />
-              {success}
-            </div>
-          )}
-
           <div className="rounded-lg border p-3 bg-gray-50">
             <p className="text-sm font-medium mb-2">Customer yang dipilih:</p>
             <div className="flex flex-wrap gap-2">
@@ -180,7 +162,7 @@ export default function BulkAssignDialog({
               <Select
                 value={selectedSales}
                 onValueChange={setSelectedSales}
-                disabled={loading || success}
+                disabled={loading}
               >
                 <SelectTrigger id="sales">
                   <SelectValue placeholder="Pilih sales..." />
@@ -207,14 +189,14 @@ export default function BulkAssignDialog({
             type="button"
             variant="outline"
             onClick={handleUnassign}
-            disabled={loading || loadingSales || success}
+            disabled={loading || loadingSales}
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Unassign Semua
           </Button>
           <Button
             onClick={handleAssign}
-            disabled={loading || loadingSales || !selectedSales || success}
+            disabled={loading || loadingSales || !selectedSales}
           >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

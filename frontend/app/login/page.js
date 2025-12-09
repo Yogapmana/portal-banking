@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
 import {
@@ -39,9 +40,16 @@ export default function LoginPage() {
 
       if (response.success) {
         login(response.data.user, response.data.accessToken);
+        toast.success("Login berhasil!", {
+          description: `Selamat datang kembali, ${response.data.user.email}`,
+        });
         router.push("/dashboard");
       } else {
         setError(response.message || "Login gagal");
+        toast.error("Login gagal", {
+          description:
+            response.message || "Periksa kembali email dan password Anda.",
+        });
       }
     } catch (err) {
       if (err.status === 429) {
@@ -50,8 +58,14 @@ export default function LoginPage() {
           err.message ||
             "Terlalu banyak percobaan login. Silakan tunggu 15 menit."
         );
+        toast.error("Terlalu banyak percobaan", {
+          description: "Silakan tunggu beberapa saat sebelum mencoba lagi.",
+        });
       } else {
         setError(err.message || "Email atau password salah");
+        toast.error("Login gagal", {
+          description: err.message || "Email atau password salah.",
+        });
       }
     } finally {
       setLoading(false);

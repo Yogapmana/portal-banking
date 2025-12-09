@@ -165,8 +165,14 @@ export default function CustomerFilters({ filters, onFilterChange }) {
         </div>
 
         {/* Advanced Filters Section */}
-        {showFilters && (
-          <div className="space-y-6 animate-in fade-in-50 slide-in-from-top-2 animation-out fade-out-50 slide-out-to-top-2 duration-300 border-t border-gray-100 pt-6">
+        <div
+          className={`transition-all duration-500 ease-in-out overflow-hidden ${
+            showFilters
+              ? "max-h-[2000px] opacity-100 border-t border-gray-100"
+              : "max-h-0 opacity-0 border-t-0"
+          }`}
+        >
+          <div className="pt-6 space-y-6">
             {/* Filter Categories Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {/* Score Range */}
@@ -189,13 +195,22 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                       <Input
                         type="number"
                         min="0"
-                        max="1"
-                        step="0.1"
-                        placeholder="0.0"
-                        value={localFilters.minScore}
-                        onChange={(e) =>
-                          handleInputChange("minScore", e.target.value)
+                        max="100"
+                        step="1"
+                        placeholder="0"
+                        value={
+                          localFilters.minScore !== "" &&
+                          localFilters.minScore !== undefined
+                            ? Math.round(localFilters.minScore * 100)
+                            : ""
                         }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleInputChange(
+                            "minScore",
+                            val === "" ? "" : parseFloat(val) / 100
+                          );
+                        }}
                         className="border-gray-200 focus:border-[#56B9F1] focus:ring-2 focus:ring-[#56B9F1]/20 rounded-lg h-10 bg-gray-50/50"
                       />
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
@@ -212,13 +227,22 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                       <Input
                         type="number"
                         min="0"
-                        max="1"
-                        step="0.1"
-                        placeholder="1.0"
-                        value={localFilters.maxScore}
-                        onChange={(e) =>
-                          handleInputChange("maxScore", e.target.value)
+                        max="100"
+                        step="1"
+                        placeholder="100"
+                        value={
+                          localFilters.maxScore !== "" &&
+                          localFilters.maxScore !== undefined
+                            ? Math.round(localFilters.maxScore * 100)
+                            : ""
                         }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleInputChange(
+                            "maxScore",
+                            val === "" ? "" : parseFloat(val) / 100
+                          );
+                        }}
                         className="border-gray-200 focus:border-[#56B9F1] focus:ring-2 focus:ring-[#56B9F1]/20 rounded-lg h-10 bg-gray-50/50"
                       />
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
@@ -481,7 +505,7 @@ export default function CustomerFilters({ filters, onFilterChange }) {
                 <Button
                   onClick={applyFilters}
                   size="lg"
-                  className="h-11 px-6 bg-gradient-to-r from-[#56B9F1] to-blue-500 hover:from-[#4AA8E0] hover:to-blue-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 group"
+                  className="h-11 px-6 bg-linear-to-r from-[#56B9F1] to-blue-500 hover:from-[#4AA8E0] hover:to-blue-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 group"
                 >
                   <Filter className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
                   Terapkan Filter
@@ -489,7 +513,7 @@ export default function CustomerFilters({ filters, onFilterChange }) {
               </div>
             </div>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
