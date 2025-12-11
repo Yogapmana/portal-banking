@@ -4,6 +4,9 @@
   - The values [SELESAI] on the enum `CallStatus` will be removed. If these variants are still used in the database, this will fail.
 
 */
+-- First, update any existing SELESAI records to TERTARIK
+UPDATE "call_logs" SET "status" = 'TERTARIK' WHERE "status" = 'SELESAI';
+
 -- AlterEnum
 BEGIN;
 CREATE TYPE "CallStatus_new" AS ENUM ('TERTARIK', 'TIDAK_TERTARIK', 'TIDAK_TERSEDIA', 'SALAH_NOMOR', 'BERMINAT');

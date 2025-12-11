@@ -403,6 +403,13 @@ export const api = {
         method: "DELETE",
       });
     },
+
+    update: async (id, userData) => {
+      return apiFetch(`/auth/users/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(userData),
+      });
+    },
   },
 
   // Conversation Guide endpoints

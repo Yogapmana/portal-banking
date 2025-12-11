@@ -12,14 +12,14 @@ const schemas = {
       .min(8)
       .pattern(
         new RegExp(
-          "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+          "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&_\\-])[A-Za-z\\d@$!%*?&_\\-]{8,}$"
         )
       )
       .required()
       .messages({
         "string.min": "Password minimal 8 karakter",
         "string.pattern.base":
-          "Password harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&)",
+          "Password harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&_-)",
         "any.required": "Password harus diisi",
       }),
     role: Joi.string()
@@ -28,6 +28,90 @@ const schemas = {
       .messages({
         "any.only": "Role tidak valid. Pilih: ADMIN, SALES_MANAGER, SALES",
       }),
+  }),
+
+  updateUser: Joi.object({
+    email: Joi.string().email().messages({
+      "string.email": "Email tidak valid",
+    }),
+    password: Joi.string()
+      .min(8)
+      .pattern(
+        new RegExp(
+          "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&_\\-])[A-Za-z\\d@$!%*?&_\\-]{8,}$"
+        )
+      )
+      .messages({
+        "string.min": "Password minimal 8 karakter",
+        "string.pattern.base":
+          "Password harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&_-)",
+      }),
+    role: Joi.string().valid("ADMIN", "SALES_MANAGER", "SALES").messages({
+      "any.only": "Role tidak valid. Pilih: ADMIN, SALES_MANAGER, SALES",
+    }),
+  }),
+
+  updateCustomer: Joi.object({
+    name: Joi.string().max(100).messages({
+      "string.max": "Nama maksimal 100 karakter",
+    }),
+    phoneNumber: Joi.string()
+      .max(20)
+      .pattern(/^[0-9+\-\s()]+$/)
+      .messages({
+        "string.max": "Nomor telepon maksimal 20 karakter",
+        "string.pattern.base":
+          "Nomor telepon hanya boleh berisi angka dan karakter +, -, (, )",
+      }),
+    age: Joi.number().integer().min(17).max(100).messages({
+      "number.base": "Usia harus berupa angka",
+      "number.integer": "Usia harus bilangan bulat",
+      "number.min": "Usia minimal 17 tahun",
+      "number.max": "Usia maksimal 100 tahun",
+    }),
+    job: Joi.string()
+      .valid(
+        "admin.",
+        "blue-collar",
+        "entrepreneur",
+        "housemaid",
+        "management",
+        "retired",
+        "self-employed",
+        "services",
+        "student",
+        "technician",
+        "unemployed",
+        "unknown"
+      )
+      .messages({
+        "any.only": "Pekerjaan tidak valid",
+      }),
+    education: Joi.string()
+      .valid(
+        "basic.4y",
+        "basic.6y",
+        "basic.9y",
+        "high.school",
+        "illiterate",
+        "professional.course",
+        "university.degree",
+        "unknown"
+      )
+      .messages({
+        "any.only": "Pendidikan tidak valid",
+      }),
+    marital: Joi.string()
+      .valid("single", "married", "divorced", "unknown")
+      .messages({
+        "any.only": "Status pernikahan tidak valid",
+      }),
+    housing: Joi.string().valid("yes", "no", "unknown").messages({
+      "any.only": "Status rumah tidak valid",
+    }),
+    loan: Joi.string().valid("yes", "no", "unknown").messages({
+      "any.only": "Status pinjaman tidak valid",
+    }),
   }),
 
   login: Joi.object({

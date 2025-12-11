@@ -31,8 +31,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Shield, AlertCircle, Users } from "lucide-react";
+import { Trash2, Shield, AlertCircle, Users, Pencil } from "lucide-react";
 import CreateUserForm from "@/components/dashboard/CreateUserForm";
+import EditUserDialog from "@/components/dashboard/EditUserDialog";
 import StatisticsCard from "@/components/dashboard/StatisticsCard";
 
 const ROLE_CONFIG = {
@@ -55,6 +56,8 @@ export default function UserManagementPage() {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -99,6 +102,12 @@ export default function UserManagementPage() {
       setShowDeleteDialog(false);
       setUserToDelete(null);
     }
+  };
+
+  const handleUpdateSuccess = () => {
+    setSuccess("User berhasil diupdate");
+    setTimeout(() => setSuccess(""), 3000);
+    mutate();
   };
 
   const getRoleStats = () => {
@@ -257,18 +266,31 @@ export default function UserManagementPage() {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setUserToDelete(user);
-                                  setShowDeleteDialog(true);
-                                }}
-                                disabled={isCurrentUser}
-                                className="text-red-600 hover:text-white hover:bg-red-600"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setUserToEdit(user);
+                                    setShowEditDialog(true);
+                                  }}
+                                  className="text-blue-600 hover:text-white hover:bg-blue-600"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setUserToDelete(user);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                  disabled={isCurrentUser}
+                                  className="text-red-600 hover:text-white hover:bg-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -304,6 +326,14 @@ export default function UserManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <EditUserDialog
+        user={userToEdit}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSuccess={handleUpdateSuccess}
+      />
     </div>
   );
 }

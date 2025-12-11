@@ -17,13 +17,22 @@ class ConversationGuideService {
    * @returns {Promise<Object>} Conversation guide with opening, topics, and closing
    */
   async generateConversationGuide(customer) {
+    // 1. Check cache first (if already generated)
+    if (customer.conversationGuide) {
+      return {
+        ...customer.conversationGuide,
+        generatedBy: "cache",
+      };
+    }
+
+    // 2. If no API key, use fallback immediately
     if (!this.genAI) {
       return this.getFallbackGuide(customer);
     }
 
     try {
       const model = this.genAI.getGenerativeModel({
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash", // Most stable model available
       });
 
       const prompt = this.buildPrompt(customer);
@@ -33,9 +42,28 @@ class ConversationGuideService {
       const text = response.text();
 
       // Parse the AI response
-      return this.parseAIResponse(text, customer);
+      const guide = this.parseAIResponse(text, customer);
+
+      // 3. Save to database (Cache the result)
+      // We need to update the customer record with the generated guide
+      // Note: This service doesn't have direct access to repository update method
+      // So we return the guide, and the controller/caller should handle the saving
+      // OR we can inject repository here. For now, let's return it and let controller handle save.
+
+      return {
+        ...guide,
+        shouldSave: true, // Flag to tell controller to save this
+      };
     } catch (error) {
-      console.error("Error generating conversation guide:", error);
+      console.error("Error generating conversation guide:", error.message);
+
+      // Log specific error for debugging
+      if (error.message.includes("429") || error.message.includes("quota")) {
+        console.warn("⚠️ Gemini API quota exceeded. Using fallback guide.");
+      } else if (error.message.includes("API key")) {
+        console.warn("⚠️ Invalid Gemini API key. Using fallback guide.");
+      }
+
       return this.getFallbackGuide(customer);
     }
   }

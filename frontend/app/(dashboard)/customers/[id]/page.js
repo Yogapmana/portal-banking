@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ConversationGuideBox from "@/components/dashboard/ConversationGuideBox";
 import CallLogForm from "@/components/dashboard/CallLogForm";
 import CallLogHistory from "@/components/dashboard/CallLogHistory";
+import EditCustomerDialog from "@/components/dashboard/EditCustomerDialog";
 import {
   ArrowLeft,
   Phone,
@@ -22,16 +23,18 @@ import {
   Calendar,
   TrendingUp,
   User,
+  Pencil,
 } from "lucide-react";
 
 export default function CustomerDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshCallLogs, setRefreshCallLogs] = useState(0);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -39,9 +42,9 @@ export default function CustomerDetailPage() {
     }
   }, [params.id]);
 
-  const fetchCustomerDetail = async () => {
+  const fetchCustomerDetail = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError("");
       const response = await api.customers.getById(params.id);
       // Backend returns customer directly, not wrapped in { data: customer }
@@ -50,7 +53,7 @@ export default function CustomerDetailPage() {
       setError(err.message || "Failed to load customer details");
       console.error("Error fetching customer:", err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -70,6 +73,16 @@ export default function CustomerDetailPage() {
   const handleCallLogSuccess = () => {
     // Trigger refresh of call logs
     setRefreshCallLogs((prev) => prev + 1);
+  };
+
+  const handleEditSuccess = (updatedCustomer) => {
+    // Update customer state directly with new data (instant update)
+    if (updatedCustomer) {
+      setCustomer((prev) => ({ ...prev, ...updatedCustomer }));
+    } else {
+      // Fallback: fetch from server if no data provided
+      fetchCustomerDetail(false);
+    }
   };
 
   if (loading) {
@@ -133,23 +146,38 @@ export default function CustomerDetailPage() {
   return (
     <div className="space-y-6 fade-in">
       {/* Page Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="hover:bg-gray-100"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Detail</h1>
-          <p className="text-sm text-muted-foreground">
-            {user?.role === "ADMIN"
-              ? "Informasi lengkap customer"
-              : "Informasi lengkap dan riwayat panggilan"}
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Customer Detail
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {user?.role === "ADMIN"
+                ? "Informasi lengkap customer"
+                : "Informasi lengkap dan riwayat panggilan"}
+            </p>
+          </div>
         </div>
+        {/* Edit Button for Admin */}
+        {isAdmin && isAdmin() && (
+          <Button
+            variant="outline"
+            onClick={() => setShowEditDialog(true)}
+            className="text-blue-600 hover:text-white hover:bg-blue-600"
+          >
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Data
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -382,6 +410,14 @@ export default function CustomerDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Customer Dialog */}
+      <EditCustomerDialog
+        customer={customer}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }

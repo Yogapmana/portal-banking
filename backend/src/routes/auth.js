@@ -80,6 +80,7 @@ router.put(
   "/users/:id",
   authMiddleware,
   requireAdmin,
+  validate("updateUser"),
   authController.updateUser
 );
 

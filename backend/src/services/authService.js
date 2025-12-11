@@ -6,6 +6,7 @@ const {
   ConflictError,
   AuthenticationError,
   NotFoundError,
+  ValidationError,
 } = require("../middleware/errorHandler");
 
 /**

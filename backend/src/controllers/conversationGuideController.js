@@ -39,18 +39,35 @@ class ConversationGuideController {
     }
 
     // Generate conversation guide
-    const guide = await this.conversationGuideService.generateConversationGuide(
-      customer
-    );
+    const guideResult =
+      await this.conversationGuideService.generateConversationGuide(customer);
 
-    res.json({
-      success: true,
-      data: {
-        customerId: customer.id,
-        customerName: customer.name,
-        guide,
-      },
-    });
+    // Save to cache if it's a new AI generation
+    if (guideResult.shouldSave) {
+      const { shouldSave, ...guideData } = guideResult;
+      await this.customerRepository.update(customer.id, {
+        conversationGuide: guideData,
+      });
+
+      // Return clean data without internal flags
+      res.json({
+        success: true,
+        data: {
+          customerId: customer.id,
+          customerName: customer.name,
+          guide: guideData,
+        },
+      });
+    } else {
+      res.json({
+        success: true,
+        data: {
+          customerId: customer.id,
+          customerName: customer.name,
+          guide: guideResult,
+        },
+      });
+    }
   });
 }
 

@@ -1,7 +1,12 @@
 const express = require("express");
 const container = require("../container");
-const { authMiddleware, requireAdminOrManager } = require("../middleware/auth");
+const {
+  authMiddleware,
+  requireAdminOrManager,
+  requireAdmin,
+} = require("../middleware/auth");
 const { bulkOperationLimiter } = require("../middleware/rateLimiter");
+const { validate } = require("../middleware/validation");
 
 const router = express.Router();
 
@@ -117,15 +122,26 @@ router.post(
 /**
  * @route   PUT /api/customers/:id
  * @desc    Update customer
- * @access  Private
+ * @access  Private (Admin only)
  */
-router.put("/:id", authMiddleware, customerController.updateCustomer);
+router.put(
+  "/:id",
+  authMiddleware,
+  requireAdmin,
+  validate("updateCustomer"),
+  customerController.updateCustomer
+);
 
 /**
  * @route   DELETE /api/customers/:id
  * @desc    Delete customer
  * @access  Private (Admin only)
  */
-router.delete("/:id", authMiddleware, customerController.deleteCustomer);
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireAdmin,
+  customerController.deleteCustomer
+);
 
 module.exports = router;

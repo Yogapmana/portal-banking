@@ -90,6 +90,9 @@ model Customer {
   euribor3m    Float
   nrEmployed   Float  @map("nr.employed")
 
+  // AI Generated Guide Cache
+  conversationGuide Json? @map("conversation_guide")
+
   // Relations
   callLogs CallLog[] @relation("CustomerCallLogs")
 
