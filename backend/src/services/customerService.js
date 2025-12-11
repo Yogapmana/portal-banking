@@ -528,9 +528,10 @@ class CustomerService {
 
     const result = await this.customerRepository.update(customerId, updateData);
 
-    // Invalidate cache
+    // Invalidate cache - both individual customer and list cache
     if (this.redis) {
       await this.redis.invalidateCustomer(customerId);
+      await this.redis.invalidateAllCustomers(); // Clear list cache so refresh shows new data
     }
 
     return result;

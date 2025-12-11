@@ -130,12 +130,22 @@ class RedisService {
         keys.push(key);
       }
 
-      if (keys.length > 0) {
-        // Use spread operator to pass keys as individual arguments
-        await this.client.del(...keys);
+      if (keys.length === 0) {
+        return 0;
       }
 
-      return keys.length;
+      // Delete keys one by one to avoid Redis argument issues
+      let deletedCount = 0;
+      for (const key of keys) {
+        try {
+          await this.client.del(key);
+          deletedCount++;
+        } catch (delError) {
+          console.error(`Redis delete key error for ${key}:`, delError.message);
+        }
+      }
+
+      return deletedCount;
     } catch (error) {
       console.error("Redis deletePattern error:", error.message);
       return 0;
