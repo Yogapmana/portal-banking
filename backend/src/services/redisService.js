@@ -131,7 +131,8 @@ class RedisService {
       }
 
       if (keys.length > 0) {
-        await this.client.del(keys);
+        // Use spread operator to pass keys as individual arguments
+        await this.client.del(...keys);
       }
 
       return keys.length;
