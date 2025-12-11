@@ -127,7 +127,10 @@ class RedisService {
       for await (const key of this.client.scanIterator({
         MATCH: prefixedPattern,
       })) {
-        keys.push(key);
+        // Only add non-empty keys
+        if (key && key.trim() !== "") {
+          keys.push(key);
+        }
       }
 
       if (keys.length === 0) {
@@ -141,7 +144,10 @@ class RedisService {
           await this.client.del(key);
           deletedCount++;
         } catch (delError) {
-          console.error(`Redis delete key error for ${key}:`, delError.message);
+          // Only log if it's not an empty key issue
+          if (key && key.trim() !== "") {
+            console.error(`Redis delete key error for ${key}:`, delError.message);
+          }
         }
       }
 
