@@ -122,36 +122,30 @@ class RedisService {
 
     try {
       const prefixedPattern = this._generateKey(pattern);
-      const keys = [];
 
-      for await (const key of this.client.scanIterator({
-        MATCH: prefixedPattern,
-      })) {
-        // Convert to string and validate
-        const keyStr = typeof key === "string" ? key : String(key || "");
-        if (keyStr && keyStr.length > 0) {
-          keys.push(keyStr);
-        }
-      }
+      // Use KEYS command to find matching keys
+      const keys = await this.client.keys(prefixedPattern);
 
-      if (keys.length === 0) {
+      if (!keys || !Array.isArray(keys) || keys.length === 0) {
         return 0;
       }
 
-      // Delete keys one by one to avoid Redis argument issues
+      // Filter valid string keys and delete one by one
       let deletedCount = 0;
       for (const key of keys) {
-        try {
-          await this.client.del(key);
-          deletedCount++;
-        } catch (delError) {
-          // Silently ignore delete errors for individual keys
+        if (typeof key === "string" && key.length > 0) {
+          try {
+            await this.client.del(key);
+            deletedCount++;
+          } catch {
+            // Ignore individual delete errors
+          }
         }
       }
 
       return deletedCount;
     } catch (error) {
-      console.error("Redis deletePattern error:", error.message);
+      // Silently fail - cache invalidation failure shouldn't break the app
       return 0;
     }
   }
@@ -175,13 +169,10 @@ class RedisService {
     if (!this.isAvailable()) return;
 
     try {
-      await Promise.all([
-        this.deletePattern(`customers:*:${customerId}:*`),
-        this.deletePattern(`customers:getCustomerById:${customerId}`),
-        this.deletePattern(`customers:list:*`),
-      ]);
+      // Clear all customer-related caches to ensure fresh data
+      await this.invalidateAllCustomers();
     } catch (error) {
-      console.error("Error invalidating customer cache:", error.message);
+      // Silently fail
     }
   }
 
@@ -191,7 +182,7 @@ class RedisService {
     try {
       await this.deletePattern("customers:*");
     } catch (error) {
-      console.error("Error invalidating all customers cache:", error.message);
+      // Silently fail
     }
   }
 
