@@ -32,9 +32,6 @@ services:
       - "5555:5555" # Prisma Studio
     env_file:
       - ./backend/.env
-    # environment:
-    #   # Override DATABASE_URL untuk Docker network
-    #   ML_SERVICE_URL: "http://ml-service:5000"
     volumes:
       # Hot-reload: sync local code to container
       - ./backend/src:/usr/src/app/src

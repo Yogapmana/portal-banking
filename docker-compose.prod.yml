@@ -33,7 +33,6 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      # Override DATABASE_URL untuk Docker network
       ML_SERVICE_URL: "http://ml-service:5000"
     depends_on:
       db:
