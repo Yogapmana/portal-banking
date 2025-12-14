@@ -1,22 +1,88 @@
 services:
-  api:
+  # 1. Database (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: portal_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: portal_banking
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - portal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d portal_banking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend (Express.js with Prisma)
+  backend:
+    container_name: portal_backend
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: portal_banking
-    restart: always
     ports:
       - "8000:8000"
+      - "5555:5555" # Prisma Studio
     env_file:
       - ./backend/.env
+    environment:
+      # Override DATABASE_URL untuk Docker network
+      ML_SERVICE_URL: "http://ml-service:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
-      - app_network
+      - portal-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
+
+  # 4. Redis
+  redis:
+    image: redis:8-alpine
+    container_name: portal_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - portal-network
+    restart: unless-stopped
+
+  # 5. ML Service (Python FastAPI)
+  ml-service:
+    container_name: portal_ml
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      MODEL_PATH: "/app/model/credit_scoring_model.pkl"
+    volumes:
+      - ./ml-service/model/credit_scoring_model.pkl:/app/model/credit_scoring_model.pkl:ro
+    networks:
+      - portal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
-  app_network:
+  portal-network:
     driver: bridge
+
+volumes:
+  pgdata:

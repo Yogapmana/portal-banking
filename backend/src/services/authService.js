@@ -177,6 +177,11 @@ class AuthService {
       throw new NotFoundError("User");
     }
 
+    // Remove empty password from update data
+    if (updateData.password === "" || updateData.password === null) {
+      delete updateData.password;
+    }
+
     // If updating password, hash it
     if (updateData.password) {
       updateData.password = await bcrypt.hash(

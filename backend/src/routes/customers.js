@@ -85,13 +85,14 @@ router.get("/:id", authMiddleware, customerController.getCustomerById);
 
 /**
  * @route   POST /api/customers
- * @desc    Create new customer
+ * @desc    Create new customer with ML scoring
  * @access  Private (Admin/Manager)
  */
 router.post(
   "/",
   authMiddleware,
   requireAdminOrManager,
+  validate("createCustomer"),
   customerController.createCustomer
 );
 
@@ -121,7 +122,7 @@ router.post(
 
 /**
  * @route   PUT /api/customers/:id
- * @desc    Update customer
+ * @desc    Update customer (score will be recalculated if relevant fields change)
  * @access  Private (Admin only)
  */
 router.put(
@@ -130,6 +131,18 @@ router.put(
   requireAdmin,
   validate("updateCustomer"),
   customerController.updateCustomer
+);
+
+/**
+ * @route   POST /api/customers/:id/recalculate-score
+ * @desc    Recalculate customer score using ML model
+ * @access  Private (Admin only)
+ */
+router.post(
+  "/:id/recalculate-score",
+  authMiddleware,
+  requireAdmin,
+  customerController.recalculateScore
 );
 
 /**

@@ -4,3 +4,5 @@ scikit-learn
 faker
 matplotlib
 seaborn
+joblib
+imbalanced-learn

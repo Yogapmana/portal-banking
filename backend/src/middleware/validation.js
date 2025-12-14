@@ -41,6 +41,7 @@ const schemas = {
           "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&_\\-])[A-Za-z\\d@$!%*?&_\\-]{8,}$"
         )
       )
+      .allow("")
       .messages({
         "string.min": "Password minimal 8 karakter",
         "string.pattern.base":
@@ -112,6 +113,122 @@ const schemas = {
     loan: Joi.string().valid("yes", "no", "unknown").messages({
       "any.only": "Status pinjaman tidak valid",
     }),
+    recalculateScore: Joi.boolean().default(false),
+  }),
+
+  createCustomer: Joi.object({
+    name: Joi.string().max(100).required().messages({
+      "string.max": "Nama maksimal 100 karakter",
+      "any.required": "Nama harus diisi",
+    }),
+    phoneNumber: Joi.string()
+      .max(20)
+      .pattern(/^[0-9+\-\s()]+$/)
+      .required()
+      .messages({
+        "string.max": "Nomor telepon maksimal 20 karakter",
+        "string.pattern.base":
+          "Nomor telepon hanya boleh berisi angka dan karakter +, -, (, )",
+        "any.required": "Nomor telepon harus diisi",
+      }),
+    age: Joi.number().integer().min(17).max(100).required().messages({
+      "number.base": "Usia harus berupa angka",
+      "number.integer": "Usia harus bilangan bulat",
+      "number.min": "Usia minimal 17 tahun",
+      "number.max": "Usia maksimal 100 tahun",
+      "any.required": "Usia harus diisi",
+    }),
+    job: Joi.string()
+      .valid(
+        "admin.",
+        "blue-collar",
+        "entrepreneur",
+        "housemaid",
+        "management",
+        "retired",
+        "self-employed",
+        "services",
+        "student",
+        "technician",
+        "unemployed",
+        "unknown"
+      )
+      .required()
+      .messages({
+        "any.only": "Pekerjaan tidak valid",
+        "any.required": "Pekerjaan harus diisi",
+      }),
+    education: Joi.string()
+      .valid(
+        "basic.4y",
+        "basic.6y",
+        "basic.9y",
+        "high.school",
+        "illiterate",
+        "professional.course",
+        "university.degree",
+        "unknown"
+      )
+      .required()
+      .messages({
+        "any.only": "Pendidikan tidak valid",
+        "any.required": "Pendidikan harus diisi",
+      }),
+    marital: Joi.string()
+      .valid("single", "married", "divorced", "unknown")
+      .required()
+      .messages({
+        "any.only": "Status pernikahan tidak valid",
+        "any.required": "Status pernikahan harus diisi",
+      }),
+    housing: Joi.string().valid("yes", "no", "unknown").required().messages({
+      "any.only": "Status rumah tidak valid",
+      "any.required": "Status kepemilikan rumah harus diisi",
+    }),
+    loan: Joi.string().valid("yes", "no", "unknown").required().messages({
+      "any.only": "Status pinjaman tidak valid",
+      "any.required": "Status pinjaman harus diisi",
+    }),
+    default: Joi.string().valid("yes", "no", "unknown").default("no").messages({
+      "any.only": "Status kredit macet tidak valid",
+    }),
+    contact: Joi.string()
+      .valid("cellular", "telephone")
+      .default("cellular")
+      .messages({
+        "any.only": "Tipe kontak tidak valid",
+      }),
+    month: Joi.string()
+      .valid(
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec"
+      )
+      .default("may"),
+    dayOfWeek: Joi.string()
+      .valid("mon", "tue", "wed", "thu", "fri")
+      .default("mon"),
+    campaign: Joi.number().integer().min(1).default(1),
+    pdays: Joi.number().integer().default(999),
+    previous: Joi.number().integer().min(0).default(0),
+    poutcome: Joi.string()
+      .valid("failure", "nonexistent", "success")
+      .default("nonexistent"),
+    empVarRate: Joi.number().default(1.1),
+    consPriceIdx: Joi.number().default(93.994),
+    consConfIdx: Joi.number().default(-36.4),
+    euribor3m: Joi.number().default(4.857),
+    nrEmployed: Joi.number().default(5191.0),
+    duration: Joi.number().integer().default(0),
   }),
 
   login: Joi.object({
@@ -222,14 +339,15 @@ const validate = (schemaName) => {
       req.body = sanitizedBody;
       req.query = sanitizedQuery;
 
+      // Determine what to validate based on HTTP method
+      const dataToValidate =
+        req.method === "GET" ? sanitizedQuery : sanitizedBody;
+
       // Validate against schema
-      const { error, value } = schemas[schemaName].validate(
-        { ...sanitizedBody, ...sanitizedQuery },
-        {
-          abortEarly: false, // Return all validation errors
-          stripUnknown: true, // Remove unknown fields
-        }
-      );
+      const { error, value } = schemas[schemaName].validate(dataToValidate, {
+        abortEarly: false, // Return all validation errors
+        stripUnknown: true, // Remove unknown fields
+      });
 
       if (error) {
         const validationErrors = error.details.map((detail) => ({
@@ -247,10 +365,10 @@ const validate = (schemaName) => {
       }
 
       // Replace request data with validated and sanitized data
-      req.body = { ...sanitizedBody, ...value };
-      if (Object.keys(value).length > 0 && !value.email && !value.password) {
-        // For query parameters
-        req.query = { ...sanitizedQuery, ...value };
+      if (req.method === "GET") {
+        req.query = value;
+      } else {
+        req.body = value;
       }
 
       next();

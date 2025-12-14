@@ -318,9 +318,11 @@ class CustomerRepository {
    * @returns {Promise<Object>} Updated customer
    */
   async update(id, updateData) {
+    // Remove recalculateScore if present
+    const { recalculateScore, ...data } = updateData || {};
     return this.prisma.customer.update({
       where: { id: parseInt(id) },
-      data: updateData,
+      data,
     });
   }
 

@@ -7,6 +7,8 @@ A modern, secure web-based customer relationship management (CRM) platform desig
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg)
 
 ## 🚀 Quick Start with Docker (Recommended)
 
@@ -79,6 +81,7 @@ docker exec -it portal_backend npm run seed
 - **AI-powered conversation guides** using Google Gemini API
 - **High-performance caching** using Redis to optimize response times
 - **Data visualization** with intuitive card-based layout
+- **ML-Powered Credit Scoring** (Python Service) for accurate lead prioritization
 
 ### 🛡️ Security
 
@@ -118,6 +121,14 @@ docker exec -it portal_backend npm run seed
 - **Joi** - Input validation
 - **Google Gemini AI** - AI-powered conversation guides
 - **Awilix** - Dependency injection container
+
+### Machine Learning Service
+
+- **Python 3.9+** - Runtime environment
+- **FastAPI** - High-performance web framework
+- **Scikit-learn** - Machine learning library
+- **Pandas** - Data manipulation and analysis
+- **Joblib** - Model serialization
 
 ### Development Tools
 
@@ -300,6 +311,7 @@ docker exec -it portal_backend npx prisma studio
 
 - **Frontend**: http://localhost:3000 (Next.js with Fast Refresh)
 - **Backend**: http://localhost:8000/api (Express with nodemon)
+- **ML Service**: http://localhost:5000 (FastAPI)
 - **Database**: localhost:5433 (PostgreSQL)
 
 **Hot Reload:**
@@ -560,6 +572,12 @@ banking-portal/
 │   │   ├── schema.prisma      # Database schema
 │   │   └── seed.js            # Database seeding
 │   └── package.json
+├── ml-service/                  # Python FastAPI ML Service
+│   ├── model/                 # Serialized ML models
+│   │   └── credit_scoring_model.pkl
+│   ├── main.py                # FastAPI application entry point
+│   ├── Dockerfile             # Docker configuration
+│   └── requirements.txt       # Python dependencies
 ├── .gitignore                   # Git ignore file
 ├── README.md                    # This file
 ```

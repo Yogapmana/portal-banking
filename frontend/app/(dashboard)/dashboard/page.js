@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import CustomerTable from "@/components/dashboard/CustomerTable";
 import CustomerFilters from "@/components/dashboard/CustomerFilters";
+import CreateCustomerDialog from "@/components/dashboard/CreateCustomerDialog";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fetcher = (params) => api.customers.getPending(params).then((res) => res);
 
@@ -45,6 +47,7 @@ const saveFilters = (filters) => {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState(() => {
     // Initialize with saved filters or defaults
     const saved = loadSavedFilters();
@@ -117,6 +120,11 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Tombol Tambah Nasabah - hanya untuk Admin */}
+          {user?.role === "ADMIN" && (
+            <CreateCustomerDialog onSuccess={() => mutate()} />
+          )}
         </div>
 
         {/* Statistics Cards - Desain modern */}

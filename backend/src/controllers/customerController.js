@@ -189,6 +189,25 @@ class CustomerController {
   });
 
   /**
+   * Recalculate customer score using ML model
+   * @route POST /api/customers/:id/recalculate-score
+   */
+  recalculateScore = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const customer = await this.customerService.recalculateScore(
+      parseInt(id),
+      req.user
+    );
+
+    res.json({
+      success: true,
+      message: "Skor berhasil dihitung ulang",
+      data: customer,
+    });
+  });
+
+  /**
    * Get customer count for a sales user
    * @route GET /api/customers/sales/:salesId/count
    */

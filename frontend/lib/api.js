@@ -265,6 +265,12 @@ export const api = {
       });
     },
 
+    recalculateScore: async (id) => {
+      return apiFetch(`/customers/${id}/recalculate-score`, {
+        method: "POST",
+      });
+    },
+
     delete: async (id) => {
       return apiFetch(`/customers/${id}`, {
         method: "DELETE",

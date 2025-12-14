@@ -85,6 +85,11 @@ GEMINI_API_KEY="your-gemini-api-key-here"
 
 # CORS
 CORS_ORIGIN="*"
+
+# ML Service
+# For Docker: http://ml-service:5000
+# For Local: http://localhost:5000
+ML_SERVICE_URL="http://ml-service:5000"
 ```
 
 ---
@@ -618,9 +623,24 @@ Authorization: Bearer <admin_or_manager_token>
 {
   "success": true,
   "message": "Customer berhasil dibuat",
-  "data": { ... }
+  "data": { 
+    "id": 1,
+    "name": "Jane Smith",
+    "score": 0.75,
+    "scoreInfo": {
+      "score": 75.0,
+      "priority": "HIGH",
+      "probability": 0.75
+    },
+    ...
+  }
 }
 ```
+
+**Note:**
+- `score`, `priority` pada response dihasilkan otomatis oleh **ML Scoring Service**
+- Input yang mempengaruhi skor: `age`, `job`, `marital`, `education`, `default`, `housing`, `loan`
+
 
 ---
 
@@ -653,7 +673,39 @@ Authorization: Bearer <token>
 }
 ```
 
-**Note:** SALES can only update their assigned customers.
+**Note:** 
+- SALES can only update their assigned customers.
+- Jika field profil (`age`, `job`, dll) berubah, skor akan dihitung ulang otomatis oleh ML Service.
+
+---
+
+### Recalculate Customer Score
+
+**POST** `/api/customers/:id/recalculate-score`
+
+**Headers:**
+
+```
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Skor berhasil dihitung ulang",
+  "data": {
+    "id": 1,
+    "score": 0.85,
+    "scoreInfo": {
+      "score": 85.0,
+      "priority": "HIGH",
+      "probability": 0.85
+    }
+  }
+}
+```
 
 ---
 
@@ -1199,7 +1251,9 @@ Routes → Controllers → Services → Repositories → Database
 - ✅ Service Layer for business logic
 - ✅ Middleware for authentication & validation
 - ✅ Error handling with custom error classes
+- ✅ Error handling with custom error classes
 - ✅ AI Integration with Google Gemini API
+- ✅ ML Scoring Integration with Python Service
 - ✅ Two-layer caching (in-memory + database)
 
 ---

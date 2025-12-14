@@ -107,3 +107,15 @@ Thumbs.db
 
 # Prisma
 prisma/dev.db
+
+# Python / Machine Learning
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env.ml
+.pytest_cache/
+.ipynb_checkpoints/
+*.pkl
+!ml-service/model/credit_scoring_model.pkl

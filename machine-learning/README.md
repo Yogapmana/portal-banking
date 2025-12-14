@@ -2,12 +2,13 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Library](https://img.shields.io/badge/Library-Scikit--Learn-orange)
-![Status](https://img.shields.io/badge/Status-Completed-green)
+![FastAPI](https://img.shields.io/badge/Service-FastAPI-009688)
+![Status](https://img.shields.io/badge/Status-Production-green)
 
 ## 📋 Project Overview
-Repositori ini berisi dokumentasi dan kode sumber *Machine Learning* untuk **Capstone Project Tim A25-CS083**. Proyek ini bertujuan untuk membangun solusi cerdas yang dapat memprediksi keberhasilan telemarketing perbankan (Deposito Berjangka).
+Repositori ini berisi dokumentasi dan kode sumber *Machine Learning* untuk **Capstone Project Tim A25-CS083**. Proyek ini menyediakan layanan **Credit Scoring** cerdas berbasis API yang dapat memprediksi probabilitas keberhasilan telemarketing perbankan (Deposito Berjangka).
 
-Dengan menganalisis data historis nasabah, model ini dirancang untuk mengidentifikasi **"Hot Leads"** (nasabah potensial) dan memberikan **Skor Prioritas**. Hal ini memungkinkan tim sales untuk memprioritaskan panggilan mereka, meningkatkan efisiensi waktu, dan menaikkan *Conversion Rate*.
+Model ini telah dioptimasi untuk integrasi aplikasi web secara *real-time*, memungkinkan tim sales untuk mendapatkan skor prioritas nasabah secara instan.
 
 ### Informasi Program
 *   **Program:** Studi Independen Bersertifikat.
@@ -26,91 +27,94 @@ Proyek ini dikerjakan secara kolaboratif oleh tim lintas fungsi:
 
 ---
 
-## 📂 Dataset Information
+## 📂 Dataset & Feature Selection
 Dataset bersumber dari **UCI Machine Learning Repository**: [Bank Marketing Data Set](https://archive.ics.uci.edu/dataset/222/bank+marketing).
 
-*   **Total Data:** 41,188 baris data nasabah.
-*   **Fitur:** 20 Atribut yang mencakup Demografis, Finansial, dan Indikator Sosial-Ekonomi.
-*   **Target:** `y` (binary: 'yes'/'no').
-*   **Kondisi Data:** Highly Imbalanced (~89% No : 11% Yes).
+### ⚡ Key Engineering Decision: 7 Key Features
+Meskipun dataset asli memiliki 20 atribut, kami melakukan **Feature Selection** yang ketat untuk kebutuhan *Deployment Production*. Kami memilih **7 Fitur Utama** yang paling relevan dan mudah diinput oleh user di aplikasi web:
 
-### ⚠️ Key Engineering Decision
-Kami memutuskan untuk **MENGHAPUS** fitur `duration` (durasi panggilan) dari pemodelan.
-> **Alasan:** Durasi panggilan tidak diketahui *sebelum* panggilan dilakukan. Menggunakannya akan menyebabkan *Data Leakage* dan membuat model bias (terlihat bagus di training tapi gagal di dunia nyata). Kami ingin membangun model yang realistis untuk *pre-call planning*.
+1.  **Demografis**: `age`, `job`, `marital`, `education`
+2.  **Finansial**: `default` (kredit macet), `housing` (KPR), `loan` (pinjaman pribadi)
+
+> **Catatan:** Fitur `duration` (durasi panggilan) tetap DIHAPUS untuk mencegah *Data Leakage*, karena durasi tidak diketahui sebelum panggilan dilakukan.
 
 ---
 
-## 🛠️ Tech Stack & Methodology
-Proyek ini dikembangkan menggunakan **Python** dengan pendekatan **CRISP-DM**.
+## 🛠️ Tech Stack & Architecture
 
-### Libraries Utama
-*   `Pandas` & `NumPy`: Manipulasi data tabular.
-*   `Scikit-learn`: Pipeline preprocessing, modeling, dan evaluasi.
-*   `Faker`: Pembangkitan data simulasi (Nama & No. Telp Indonesia) untuk kebutuhan demo aplikasi.
-*   `Matplotlib` & `Seaborn`: Visualisasi data.
+### Libraries & Tools
+*   **Training**: `Pandas`, `Scikit-learn`, `Jupyter Notebook`
+*   **Serving**: `FastAPI`, `Uvicorn`, `Joblib`, `Docker`
+*   **Data Gen**: `Faker` (untuk simulasi data dummy)
 
 ### Architecture Pipeline
-1.  **Data Preprocessing:**
-    *   Handling 'unknown' values.
-    *   **Data Enrichment:** Menambahkan data dummy (Nama/Telp) menggunakan library `Faker`.
-    *   **Transformation:** `StandardScaler` untuk numerik & `OneHotEncoder` untuk kategorikal.
-2.  **Modeling Strategy:**
-    *   **Algoritma:** Random Forest Classifier (`n_estimators=100`).
-    *   **Handling Imbalance:** Menggunakan teknik **Cost-Sensitive Learning** dengan parameter `class_weight='balanced'`.
-3.  **Deployment:**
-    *   Output model diekspor menjadi CSV terstruktur untuk diinjeksi ke Database Backend.
+1.  **Training (Offline)**: Dilakukan di `notebooks/Customer_Data_Modelling.ipynb`. Model dilatih menggunakan 19 fitur untuk analisis mendalam, namun divalidasi kinerjanya pada subset fitur.
+2.  **Serving (Online)**: Menggunakan `ml-service` (FastAPI). Service ini menerima input 7 fitur dari Frontend/Backend, melakukan *preprocessing* ringan, dan mengembalikan skor secara *real-time*.
 
 ---
 
 ## 📊 Model Performance
-Berdasarkan evaluasi pada Data Uji (20% Split), model menunjukkan performa yang solid untuk keperluan *ranking* prioritas nasabah:
+Kami membandingkan beberapa algoritma (Random Forest, Logistic Regression, Gradient Boosting). 
+**Model Terpilih: Gradient Boosting Classifier**.
 
 | Metric | Score | Interpretasi |
 | :--- | :--- | :--- |
-| **ROC-AUC Score** | **0.7817** | Target > 0.75 tercapai. Model baik dalam membedakan nasabah potensial vs non-potensial. |
-| **Accuracy** | **89.57%** | Akurasi global yang tinggi (meskipun pada data imbalance). |
-| **Precision (Class 0)** | 0.91 | Sangat akurat dalam memprediksi nasabah yang akan menolak (menghemat waktu sales). |
-
-### Visualisasi Evaluasi
-
-| Feature Importance | ROC Curve |
-| :---: | :---: |
-| ![Feature Importance](images/feature_importance.png) | ![ROC Curve](images/roc_curve.png) |
+| **ROC-AUC Score** | **0.8091** | Kemampuan membedakan kelas positif/negatif sangat baik. |
+| **Accuracy** | **90.11%** | Tingkat keakuratan prediksi global. |
 
 ---
 
-## 🔌 Output Integration (API Contract)
-Tim Machine Learning menyediakan output data final dalam format CSV/JSON yang disepakati bersama tim Back-End Developer. Berikut adalah struktur datanya:
+## 🔌 API Integration (Real-time Scoring)
+Service Machine Learning berjalan pada endpoint `/predict`.
 
-| customer_id | nama | no_telp | skor_probabilitas | y_actual |
-| :--- | :--- | :--- | :--- | :--- |
-| 40574 | T. Virman Haryanti | +62-0335... | **1.00** | yes |
-| 40419 | Dodo Mustofa | +62-0973... | **0.98** | yes |
-| ... | ... | ... | ... | ... |
+### Endpoint: `POST /predict`
 
-*Data ini memungkinkan Portal Web menampilkan daftar nasabah yang diurutkan dari skor tertinggi ke terendah.*
+#### Request Body (JSON)
+```json
+{
+  "age": 35,
+  "job": "entrepreneur",
+  "marital": "married",
+  "education": "university.degree",
+  "default": "no",
+  "housing": "yes",
+  "loan": "no"
+}
+```
+
+#### Response Body (JSON)
+```json
+{
+  "score": 85.5,
+  "probability": 0.4275,
+  "priority": "HIGH"
+}
+```
+*   **Score (0-100)**: Nilai probabilitas yang discaling untuk keterbacaan (0-100).
+*   **Priority**: `HIGH` (>70), `MEDIUM` (40-70), `LOW` (<40).
 
 ---
 
 ## 🚀 How to Run
-Untuk menjalankan eksperimen ini di mesin lokal Anda:
 
-1.  **Clone Repository**
-    ```bash
-    git clone https://github.com/ardlikafi/predictive-lead-scoring-for-banking-sales-machine-learning.git
-    cd predictive-lead-scoring-for-banking-sales-machine-learning
-    ```
+### 1. Training Model (Optional)
+Jalankan notebook untuk melatih ulang model dan menghasilkan file `.pkl` baru.
+```bash
+cd notebooks
+jupyter notebook Customer_Data_Modelling.ipynb
+```
 
-2.  **Install Requirements**
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 2. Running ML Service (Local)
+```bash
+cd ml-service
+pip install -r requirements.txt
+python main.py
+```
+*Service akan berjalan di `http://localhost:5000`*
 
-3.  **Run Notebook**
-    Buka dan jalankan file di folder `notebooks/`:
-    `Customer_Data_Modeling.ipynb`
-
----
-
-**Disclaimer:**
-Proyek ini merupakan bagian dari tugas akhir Program Studi Independen Bersertifikat (SIB).
+### 3. Running with Docker
+```bash
+cd ml-service
+docker build -t credit-scoring-service .
+docker run -p 5000:5000 credit-scoring-service
+```

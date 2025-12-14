@@ -5,6 +5,7 @@ const {
 } = require("../middleware/errorHandler");
 const { config } = require("../config");
 const crypto = require("crypto");
+const ScoringService = require("./scoringService");
 
 /**
  * Customer Service
@@ -15,6 +16,7 @@ class CustomerService {
     this.customerRepository = customerRepository;
     this.userRepository = userRepository;
     this.redis = redisService;
+    this.scoringService = new ScoringService();
   }
 
   /**
@@ -480,7 +482,7 @@ class CustomerService {
   }
 
   /**
-   * Create new customer
+   * Create new customer with ML-generated score
    * @param {Object} customerData - Customer data
    * @param {Object} user - Authenticated user
    * @returns {Promise<Object>} Created customer
@@ -493,24 +495,55 @@ class CustomerService {
       );
     }
 
-    const result = await this.customerRepository.create(customerData);
+    // Generate score using ML service
+    const scoreResult = await this.scoringService.calculateScore(customerData);
+
+    // Use probability (0-1) for database storage, not score (0-100)
+    const normalizedScore =
+      scoreResult.probability !== undefined
+        ? scoreResult.probability
+        : scoreResult.score / 100;
+
+    // Generate unique originalId (timestamp-based)
+    const timestamp = Date.now();
+    const randomSuffix = Math.floor(Math.random() * 1000);
+    const originalId = parseInt(`${timestamp}${randomSuffix}`.slice(-9));
+
+    // Add score and originalId to customer data
+    const dataWithScore = {
+      ...customerData,
+      score: normalizedScore,
+      originalId: originalId,
+      // Set default values for required fields
+      duration: customerData.duration || 0,
+    };
+
+    const result = await this.customerRepository.create(dataWithScore);
 
     // Invalidate all customers cache since list changed
     if (this.redis) {
       await this.redis.invalidateAllCustomers();
     }
 
-    return result;
+    return {
+      ...result,
+      scoreInfo: {
+        score: normalizedScore,
+        priority: scoreResult.priority,
+        probability: scoreResult.probability,
+      },
+    };
   }
 
   /**
-   * Update customer
+   * Update customer with optional score recalculation
    * @param {number} customerId - Customer ID
    * @param {Object} updateData - Data to update
    * @param {Object} user - Authenticated user
+   * @param {boolean} recalculateScore - Whether to recalculate score
    * @returns {Promise<Object>} Updated customer
    */
-  async updateCustomer(customerId, updateData, user) {
+  async updateCustomer(customerId, updateData, user, recalculateScore = false) {
     // Check if customer exists
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
@@ -526,7 +559,61 @@ class CustomerService {
       }
     }
 
-    const result = await this.customerRepository.update(customerId, updateData);
+    let dataToUpdate = { ...updateData };
+    let scoreInfo = null;
+
+    // Recalculate score if requested or if relevant fields changed
+    const scoreRelevantFields = [
+      "age",
+      "job",
+      "marital",
+      "education",
+      "default",
+      "housing",
+      "loan",
+    ];
+    const hasScoreRelevantChanges = scoreRelevantFields.some(
+      (field) => updateData[field] !== undefined
+    );
+
+    if (recalculateScore || hasScoreRelevantChanges) {
+      // Only use raw fields for scoring, exclude score and derived fields
+      const {
+        score: _score,
+        probability: _probability,
+        priority: _priority,
+        method: _method,
+        mlBonus: _mlBonus,
+        mlProbability: _mlProbability,
+        ...rawCustomer
+      } = customer;
+      const mergedData = {
+        ...rawCustomer,
+        ...updateData,
+      };
+      const scoreResult = await this.scoringService.calculateScore(mergedData);
+      // Store score as probability (0-1) in DB, not 0-100
+      dataToUpdate.score =
+        scoreResult.probability !== undefined
+          ? scoreResult.probability
+          : scoreResult.score / 100;
+      scoreInfo = {
+        score: scoreResult.score,
+        priority: scoreResult.priority,
+        probability: scoreResult.probability,
+        recalculated: true,
+      };
+    }
+
+    // Clear conversation guide cache if profile data changed
+    if (hasScoreRelevantChanges) {
+      dataToUpdate.conversationGuide = null;
+    }
+
+    const result = await this.customerRepository.update(
+      customerId,
+      dataToUpdate
+    );
 
     // Invalidate cache - both individual customer and list cache
     if (this.redis) {
@@ -534,7 +621,7 @@ class CustomerService {
       await this.redis.invalidateAllCustomers(); // Clear list cache so refresh shows new data
     }
 
-    return result;
+    return scoreInfo ? { ...result, scoreInfo } : result;
   }
 
   /**
@@ -573,6 +660,56 @@ class CustomerService {
    */
   async getCustomerCountBySales(salesId) {
     return this.customerRepository.countBySalesId(salesId);
+  }
+
+  /**
+   * Recalculate score for a customer using ML model
+   * @param {number} customerId - Customer ID
+   * @param {Object} user - Authenticated user
+   * @returns {Promise<Object>} Updated customer with new score
+   */
+  async recalculateScore(customerId, user) {
+    // Only admin can recalculate scores
+    if (user.role !== "ADMIN") {
+      throw new AuthorizationError(
+        "Hanya Admin yang dapat menghitung ulang skor"
+      );
+    }
+
+    // Get existing customer
+    const customer = await this.customerRepository.findById(customerId);
+    if (!customer) {
+      throw new NotFoundError("Customer");
+    }
+
+    // Calculate new score using ML service
+    const scoreResult = await this.scoringService.calculateScore(customer);
+
+    // Normalize score to 0-1 range
+    const normalizedScore =
+      scoreResult.probability !== undefined
+        ? scoreResult.probability
+        : scoreResult.score / 100;
+
+    // Update customer with new score
+    const updatedCustomer = await this.customerRepository.update(customerId, {
+      score: normalizedScore,
+    });
+
+    // Invalidate cache
+    if (this.redis) {
+      await this.redis.invalidateCustomer(customerId);
+      await this.redis.invalidateAllCustomers();
+    }
+
+    return {
+      ...updatedCustomer,
+      scoreInfo: {
+        score: normalizedScore,
+        probability: scoreResult.probability,
+        priority: scoreResult.priority,
+      },
+    };
   }
 }
 

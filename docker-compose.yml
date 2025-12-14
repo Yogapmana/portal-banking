@@ -32,9 +32,9 @@ services:
       - "5555:5555" # Prisma Studio
     env_file:
       - ./backend/.env
-    environment:
-      # Override DATABASE_URL untuk Docker network
-      DATABASE_URL: "postgresql://user:password@db:5432/portal_banking"
+    # environment:
+    #   # Override DATABASE_URL untuk Docker network
+    #   ML_SERVICE_URL: "http://ml-service:5000"
     volumes:
       # Hot-reload: sync local code to container
       - ./backend/src:/usr/src/app/src
@@ -52,6 +52,7 @@ services:
       - portal-network
     restart: unless-stopped
     command: sh -c "npx prisma migrate deploy && npm run dev"
+
   # 4. Redis
   redis:
     image: redis:8-alpine
@@ -61,6 +62,27 @@ services:
     networks:
       - portal-network
     restart: unless-stopped
+
+  # 5. ML Service (Python FastAPI)
+  ml-service:
+    container_name: portal_ml
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      MODEL_PATH: "/app/model/credit_scoring_model.pkl"
+    volumes:
+      - ./ml-service/model/credit_scoring_model.pkl:/app/model/credit_scoring_model.pkl:ro
+    networks:
+      - portal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 3. Frontend (Next.js)
   frontend:

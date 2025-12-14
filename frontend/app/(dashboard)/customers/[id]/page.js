@@ -12,6 +12,8 @@ import ConversationGuideBox from "@/components/dashboard/ConversationGuideBox";
 import CallLogForm from "@/components/dashboard/CallLogForm";
 import CallLogHistory from "@/components/dashboard/CallLogHistory";
 import EditCustomerDialog from "@/components/dashboard/EditCustomerDialog";
+import DeleteCustomerDialog from "@/components/dashboard/DeleteCustomerDialog";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Phone,
@@ -24,6 +26,9 @@ import {
   TrendingUp,
   User,
   Pencil,
+  RefreshCw,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
 
 export default function CustomerDetailPage() {
@@ -35,6 +40,8 @@ export default function CustomerDetailPage() {
   const [error, setError] = useState("");
   const [refreshCallLogs, setRefreshCallLogs] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -82,6 +89,29 @@ export default function CustomerDetailPage() {
     } else {
       // Fallback: fetch from server if no data provided
       fetchCustomerDetail(false);
+    }
+  };
+
+  const handleRecalculateScore = async () => {
+    setRecalculating(true);
+    try {
+      const response = await api.customers.recalculateScore(params.id);
+      if (response.data) {
+        setCustomer((prev) => ({
+          ...prev,
+          score: response.data.score,
+        }));
+        toast.success("Skor berhasil diperbarui!", {
+          description: `Skor baru: ${(response.data.score * 100).toFixed(1)}%`,
+        });
+      }
+    } catch (err) {
+      toast.error("Gagal memperbarui skor", {
+        description:
+          err.message || "Terjadi kesalahan saat menghitung ulang skor",
+      });
+    } finally {
+      setRecalculating(false);
     }
   };
 
@@ -169,14 +199,37 @@ export default function CustomerDetailPage() {
         </div>
         {/* Edit Button for Admin */}
         {isAdmin && isAdmin() && (
-          <Button
-            variant="outline"
-            onClick={() => setShowEditDialog(true)}
-            className="text-blue-600 hover:text-white hover:bg-blue-600"
-          >
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit Data
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleRecalculateScore}
+              disabled={recalculating}
+              className="text-amber-600 hover:text-white hover:bg-amber-600"
+            >
+              {recalculating ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+              )}
+              {recalculating ? "Menghitung..." : "Hitung Ulang Skor"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditDialog(true)}
+              className="text-blue-600 hover:text-white hover:bg-blue-600"
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Data
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-red-600 hover:text-white hover:bg-red-600 border-red-200"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Hapus Data
+            </Button>
+          </div>
         )}
       </div>
 
@@ -417,6 +470,14 @@ export default function CustomerDetailPage() {
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         onSuccess={handleEditSuccess}
+      />
+
+      {/* Delete Customer Dialog */}
+      <DeleteCustomerDialog
+        customer={customer}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onSuccess={() => router.push("/dashboard")}
       />
     </div>
   );
