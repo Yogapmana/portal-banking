@@ -46,6 +46,7 @@ docker exec -it portal_backend npm run seed
 - [User Roles and Permissions](#-user-roles-and-permissions)
 - [API Documentation](#-api-documentation)
 - [Project Structure](#-project-structure)
+- [Model Machine Learning](#-model-machine-learning)
 - [Security Features](#-security-features)
 - [Development](#-development)
 - [Testing](#-testing)
@@ -178,7 +179,6 @@ docker exec -it portal_backend npm run seed
 # Login: admin@bank.com / [Check .env for password]
 ```
 
-📖 **Full Docker Guide**: See [DOCKER_SETUP.md](DOCKER_SETUP.md) and [QUICKSTART.md](QUICKSTART.md)
 
 ### Option 2: Local Development Setup
 
