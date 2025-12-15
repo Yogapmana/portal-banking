@@ -12,7 +12,7 @@ A modern, secure web-based customer relationship management (CRM) platform desig
 
 ## 🚀 Quick Start with Docker (Recommended)
 
-Get started in 5 minutes! See [QUICKSTART.md](QUICKSTART.md)
+Get started in 5 minutes!
 
 ```bash
 # Setup environment
@@ -28,8 +28,6 @@ docker exec -it portal_backend npm run seed
 # Access: http://localhost:3000
 # Login: admin@bank.com / [Check .env for password]
 ```
-
-📖 **Full Docker Guide**: [DOCKER_SETUP.md](DOCKER_SETUP.md)
 
 ---
 
