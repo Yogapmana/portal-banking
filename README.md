@@ -205,7 +205,20 @@ cd ../frontend
 npm install
 ```
 
+
+**ML Service Dependencies:**
+
+```bash
+cd ../ml-service
+# Optional: Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\\Scripts\\activate
+
+pip install -r requirements.txt
+```
+
 #### 3. Environment Configuration
+
 
 **Backend Environment:**
 
@@ -340,7 +353,23 @@ npm run dev
 
 The frontend will run on `http://localhost:3000`
 
+
+#### ML Service (Terminal 3)
+
+```bash
+cd ml-service
+# Activate venv if used
+source venv/bin/activate
+
+# Run server
+export MODEL_PATH=model/credit_scoring_model.pkl
+uvicorn main:app --reload --port 5000
+```
+
+The ML Service will run on `http://localhost:5000`
+
 ### Access the Application
+
 
 **With Docker:**
 
