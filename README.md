@@ -582,6 +582,31 @@ banking-portal/
 ├── README.md                    # This file
 ```
 
+## 🧠 Model Machine Learning
+
+Model Credit Scoring yang digunakan dalam aplikasi ini dihasilkan dari proses training menggunakan Jupyter Notebook.
+
+- **Notebook Source**: `machine-learning/notebooks/Customer_Prediction_Model.ipynb`
+- **Model Output**: `machine-learning/output/credit_scoring_model.pkl`
+- **Service Location**: `ml-service/model/credit_scoring_model.pkl`
+- **Download Model**: `https://drive.google.com/file/d/1q7mGnLNNKamX2tUsUndAfxNl4l6hZ3Zy/view?usp=drive_link`
+
+### Cara Menggunakan Model
+
+Model disimpan dalam format serialisasi `.pkl` (Python Pickle/Joblib). Untuk memuat model ini secara manual:
+
+```python
+import joblib
+
+# Load model
+model = joblib.load('ml-service/model/credit_scoring_model.pkl')
+
+# Predict
+prob = model.predict_proba(data)
+```
+
+**Catatan**: Jika file model tidak ditemukan, jalankan notebook `Customer_Prediction_Model.ipynb` untuk melatih dan menghasilkan file model baru.
+
 ## 🔒 Security Features
 
 ### Authentication & Authorization
@@ -652,37 +677,6 @@ npx prisma studio
 # Generate Prisma client
 npx prisma generate
 ```
-
-## 🧪 Testing
-
-### Frontend Testing
-
-```bash
-cd frontend
-npm test                    # Run tests
-npm run test:watch         # Watch mode
-npm run test:coverage      # Coverage report
-```
-
-### Backend Testing
-
-```bash
-cd backend
-npm test                    # Run tests
-npm run test:watch         # Watch mode
-npm run test:coverage      # Coverage report
-```
-
-### Manual Testing Checklist
-
-- [ ] User login with different roles
-- [ ] Role-based access control
-- [ ] Customer data filtering and search
-- [ ] Admin user management
-- [ ] Password validation
-- [ ] API endpoint security
-- [ ] Responsive design testing
-- [ ] Error handling and loading states
 
 ## 🚀 Deployment
 
