@@ -616,7 +616,7 @@ Model Credit Scoring yang digunakan dalam aplikasi ini dihasilkan dari proses tr
 - **Notebook Source**: `machine-learning/notebooks/Customer_Prediction_Model.ipynb`
 - **Model Output**: `machine-learning/output/credit_scoring_model.pkl`
 - **Service Location**: `ml-service/model/credit_scoring_model.pkl`
-- **Download Model**: `https://drive.google.com/file/d/1q7mGnLNNKamX2tUsUndAfxNl4l6hZ3Zy/view?usp=drive_link`
+- **Download Model**: [Download via Google Drive](https://drive.google.com/file/d/1q7mGnLNNKamX2tUsUndAfxNl4l6hZ3Zy/view?usp=drive_link)
 
 ### Cara Menggunakan Model
 
