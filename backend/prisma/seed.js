@@ -189,10 +189,13 @@ async function main() {
     // Get credentials from environment or use secure defaults
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPasswordPlain = process.env.ADMIN_PASSWORD;
+    const managerEmail = process.env.MANAGER_EMAIL;
+    const managerPasswordPlain = process.env.MANAGER_PASSWORD;
     const salesEmail = process.env.SALES_EMAIL;
     const salesPasswordPlain = process.env.SALES_PASSWORD;
 
     const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
+    const managerPassword = await bcrypt.hash(managerPasswordPlain, 12);
     const salesPassword = await bcrypt.hash(salesPasswordPlain, 12);
 
     const adminUser = await prisma.user.create({
@@ -203,6 +206,16 @@ async function main() {
       },
     });
     console.log("Admin user created successfully");
+
+    // Buat user manager dummy
+    await prisma.user.create({
+      data: {
+        email: managerEmail,
+        password: managerPassword,
+        role: "SALES_MANAGER",
+      },
+    });
+    console.log("Manager user created successfully");
 
     // Buat user sales dummy (opsional, untuk login)
     await prisma.user.create({
