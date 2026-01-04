@@ -20,7 +20,9 @@ import CreateCustomerDialog from "@/components/dashboard/CreateCustomerDialog";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 
-const fetcher = (params) => api.customers.getPending(params).then((res) => res);
+// Fetcher yang berbeda berdasarkan role
+const fetcherPending = (params) => api.customers.getPending(params).then((res) => res);
+const fetcherAll = (params) => api.customers.getAll(params).then((res) => res);
 
 const STORAGE_KEY = "dashboard_filters_state";
 
@@ -73,8 +75,12 @@ export default function DashboardPage() {
     saveFilters(filters);
   }, [filters]);
 
+  // Pilih fetcher berdasarkan role - ADMIN bisa lihat semua customer
+  const isAdmin = user?.role === "ADMIN";
+  const fetcher = isAdmin ? fetcherAll : fetcherPending;
+
   const { data, error, isLoading, mutate } = useSWR(
-    ["customers", filters],
+    ["customers", filters, user?.role],
     () => fetcher(filters),
     {
       revalidateOnFocus: false,
@@ -115,7 +121,9 @@ export default function DashboardPage() {
                   Customer Dashboard
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Analisis dan kelola nasabah potensial yang belum dikontak
+                  {isAdmin 
+                    ? "Analisis dan kelola semua data nasabah" 
+                    : "Analisis dan kelola nasabah potensial yang belum dikontak"}
                 </p>
               </div>
             </div>
@@ -283,7 +291,9 @@ export default function DashboardPage() {
                 Customer Database
               </h2>
               <p className="text-sm text-gray-500">
-                Daftar nasabah potensial yang siap dikontak
+                {isAdmin 
+                  ? "Daftar semua data nasabah" 
+                  : "Daftar nasabah potensial yang siap dikontak"}
               </p>
             </div>
 
